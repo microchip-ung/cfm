@@ -54,17 +54,21 @@ static void cfm_nl_bridge_prepare(uint32_t ifindex, int cmd, struct request *req
 }
 
 static int cfm_nl_terminate(struct request *req, struct rtattr *afspec,
-			    struct rtattr *afmrp, struct rtattr *af_submrp)
+			    struct rtattr *af, struct rtattr *af_sub)
 {
 	int err;
 
-	addattr_nest_end(&req->n, af_submrp);
-	addattr_nest_end(&req->n, afmrp);
+	printf("cfm_nl_terminate\n");
+
+	addattr_nest_end(&req->n, af_sub);
+	addattr_nest_end(&req->n, af);
 	addattr_nest_end(&req->n, afspec);
 
 	err = rtnl_talk(&rth, &req->n, NULL);
-	if (err)
+	if (err) {
+		printf("cfm_nl_terminate: rtnl_talk failed\n");
 		return err;
+	}
 
 	return 0;
 }
@@ -88,6 +92,8 @@ int cfm_offload_create(uint32_t br_ifindex, uint32_t instance, uint32_t domain, 
 {
 	struct rtattr *afspec, *af, *af_sub;
 	struct request req = { 0 };
+
+	printf("cfm_offload_create\n");
 
 	cfm_nl_bridge_prepare(br_ifindex, RTM_SETLINK, &req, &afspec,
 			      &af, &af_sub, IFLA_BRIDGE_CFM_MEP_CREATE);

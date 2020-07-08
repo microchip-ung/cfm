@@ -880,6 +880,8 @@ static int __rtnl_talk_iov(struct rtnl_handle *rtnl, struct iovec *iov,
 	int i, status;
 	char *buf;
 
+	printf("__rtnl_talk_iov  show_rtnl_err %u\n", show_rtnl_err);
+
 	for (i = 0; i < iovlen; i++) {
 		h = iov[i].iov_base;
 		h->nlmsg_seq = seq = ++rtnl->seq;
@@ -953,8 +955,10 @@ next:
 					errno = -error;
 
 					if (rtnl->proto != NETLINK_SOCK_DIAG &&
-					    show_rtnl_err)
+					    show_rtnl_err) {
+						printf("sendmsg failed\n");
 						rtnl_talk_error(h, err, errfn);
+					}
 				}
 
 				if (answer)

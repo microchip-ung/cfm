@@ -82,7 +82,7 @@ static int cmd_createmep(int argc, char *const *argv)
 	uint32_t br_ifindex = 0, port_ifindex = 0, instance = 0, domain = 0, direction = 0;
 	uint16_t vid = 0;
 
-	printf("cmd_createmep");
+	printf("cmd_createmep\n");
 
 	/* skip the command */
 	argv++;
@@ -122,7 +122,7 @@ static int cmd_deletemep(int argc, char *const *argv)
 {
 	uint32_t br_ifindex = 0, instance = 0;
 
-	printf("cmd_deletemep");
+	printf("cmd_deletemep\n");
 
 	/* skip the command */
 	argv++;
@@ -148,7 +148,7 @@ static int cmd_deletemep(int argc, char *const *argv)
 
 static int cmd_showmep(int argc, char *const *argv)
 {
-	printf("cmd_showmep");
+	printf("cmd_showmep\n");
 	return 1;
 }
 
