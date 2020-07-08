@@ -33,9 +33,9 @@ struct request {
 	char			buf[1024];
 };
 
-static void mrp_nl_bridge_prepare(uint32_t ifindex, int cmd, struct request *req,
-				  struct rtattr **afspec, struct rtattr **afmrp,
-				  struct rtattr **af_submrp, int mrp_attr)
+static void cfm_nl_bridge_prepare(uint32_t ifindex, int cmd, struct request *req,
+				  struct rtattr **afspec, struct rtattr **af,
+				  struct rtattr **af_sub, int attr)
 {
 	req->n.nlmsg_len = NLMSG_LENGTH(sizeof(struct ifinfomsg));
 	req->n.nlmsg_flags = NLM_F_REQUEST;
@@ -47,13 +47,13 @@ static void mrp_nl_bridge_prepare(uint32_t ifindex, int cmd, struct request *req
 	*afspec = addattr_nest(&req->n, sizeof(*req), IFLA_AF_SPEC);
 	addattr16(&req->n, sizeof(*req), IFLA_BRIDGE_FLAGS, BRIDGE_FLAGS_SELF);
 
-	*afmrp = addattr_nest(&req->n, sizeof(*req),
-			      IFLA_BRIDGE_MRP | NLA_F_NESTED);
-	*af_submrp = addattr_nest(&req->n, sizeof(*req),
-				  mrp_attr | NLA_F_NESTED);
+	*af = addattr_nest(&req->n, sizeof(*req),
+			   IFLA_BRIDGE_CFM | NLA_F_NESTED);
+	*af_sub = addattr_nest(&req->n, sizeof(*req),
+			       attr | NLA_F_NESTED);
 }
 
-static int mrp_nl_terminate(struct request *req, struct rtattr *afspec,
+static int cfm_nl_terminate(struct request *req, struct rtattr *afspec,
 			    struct rtattr *afmrp, struct rtattr *af_submrp)
 {
 	int err;
@@ -69,7 +69,7 @@ static int mrp_nl_terminate(struct request *req, struct rtattr *afspec,
 	return 0;
 }
 
-int mrp_offload_init(void)
+int cfm_offload_init(void)
 {
 	if (rtnl_open(&rth, 0) < 0) {
 		fprintf(stderr, "Cannot open rtnetlink\n");
@@ -79,45 +79,43 @@ int mrp_offload_init(void)
 	return 0;
 }
 
-void mrp_offload_uninit(void)
+void cfm_offload_uninit(void)
 {
 	rtnl_close(&rth);
 }
 
-int mrp_offload_add(struct mrp *mrp, struct mrp_port *p, struct mrp_port *s,
-		    uint16_t prio)
+int cfm_offload_create(uint32_t br_ifindex, uint32_t instance, uint32_t domain, uint32_t direction, uint16_t vid, uint32_t ifindex)
 {
-	struct rtattr *afspec, *afmrp, *af_submrp;
+	struct rtattr *afspec, *af, *af_sub;
 	struct request req = { 0 };
 
-	mrp_nl_bridge_prepare(mrp->ifindex, RTM_SETLINK, &req, &afspec,
-			      &afmrp, &af_submrp, IFLA_BRIDGE_MRP_INSTANCE);
+	cfm_nl_bridge_prepare(br_ifindex, RTM_SETLINK, &req, &afspec,
+			      &af, &af_sub, IFLA_BRIDGE_CFM_MEP_CREATE);
 
-	addattr32(&req.n, sizeof(req), IFLA_BRIDGE_MRP_INSTANCE_RING_ID,
-		  mrp->ring_nr);
-	addattr32(&req.n, sizeof(req), IFLA_BRIDGE_MRP_INSTANCE_P_IFINDEX,
-		  p->ifindex);
-	addattr32(&req.n, sizeof(req), IFLA_BRIDGE_MRP_INSTANCE_S_IFINDEX,
-		  s->ifindex);
-	addattr16(&req.n, sizeof(req), IFLA_BRIDGE_MRP_INSTANCE_PRIO, prio);
+	addattr32(&req.n, sizeof(req), IFLA_BRIDGE_CFM_MEP_CREATE_INSTANCE,
+		  instance);
+	addattr32(&req.n, sizeof(req), IFLA_BRIDGE_CFM_MEP_CREATE_DOMAIN,
+		  domain);
+	addattr32(&req.n, sizeof(req), IFLA_BRIDGE_CFM_MEP_CREATE_DIRECTION,
+		  direction);
+	addattr16(&req.n, sizeof(req), IFLA_BRIDGE_CFM_MEP_CREATE_VID,
+		  vid);
+	addattr32(&req.n, sizeof(req), IFLA_BRIDGE_CFM_MEP_CREATE_IFINDEX,
+		  ifindex);
 
-	return mrp_nl_terminate(&req, afspec, afmrp, af_submrp);
+	return cfm_nl_terminate(&req, afspec, af, af_sub);
 }
 
-int mrp_offload_del(struct mrp *mrp)
+int cfm_offload_delete(uint32_t br_ifindex, uint32_t instance)
 {
-	struct rtattr *afspec, *afmrp, *af_submrp;
+	struct rtattr *afspec, *af, *af_sub;
 	struct request req = { 0 };
 
-	mrp_nl_bridge_prepare(mrp->ifindex, RTM_DELLINK, &req, &afspec, &afmrp,
-			      &af_submrp, IFLA_BRIDGE_MRP_INSTANCE);
+	cfm_nl_bridge_prepare(br_ifindex, RTM_SETLINK, &req, &afspec, &af,
+			      &af_sub, IFLA_BRIDGE_CFM_MEP_DELETE);
 
-	addattr32(&req.n, sizeof(req), IFLA_BRIDGE_MRP_INSTANCE_RING_ID,
-		  mrp->ring_nr);
-	addattr32(&req.n, sizeof(req), IFLA_BRIDGE_MRP_INSTANCE_P_IFINDEX,
-		  mrp->p_port->ifindex);
-	addattr32(&req.n, sizeof(req), IFLA_BRIDGE_MRP_INSTANCE_S_IFINDEX,
-		  mrp->s_port->ifindex);
+	addattr32(&req.n, sizeof(req), IFLA_BRIDGE_CFM_MEP_CREATE_INSTANCE,
+		  instance);
 
-	return mrp_nl_terminate(&req, afspec, afmrp, af_submrp);
+	return cfm_nl_terminate(&req, afspec, af, af_sub);
 }

@@ -4,7 +4,8 @@
 #ifndef OFFLOAD_H
 #define OFFLOAD_H
 
-int mrp_offload_init(void);
-void mrp_offload_uninit(void);
+int cfm_offload_create(uint32_t br_ifindex, uint32_t instance, uint32_t domain, uint32_t direction, uint16_t vid, uint32_t ifindex);
+int cfm_offload_delete(uint32_t br_ifindex, uint32_t instance);
+int cfm_offload_init(void);
 
 #endif
