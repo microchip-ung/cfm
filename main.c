@@ -65,7 +65,7 @@ static enum br_cfm_domain domain_int(char *arg)
 		return BR_CFM_PORT;
 	if (strcmp(arg, "vlan") == 0)
 		return BR_CFM_VLAN;
-	return BR_CFM_PORT;
+	return -1;
 }
 
 static enum br_cfm_mep_direction direction_int(char *arg)
@@ -74,15 +74,13 @@ static enum br_cfm_mep_direction direction_int(char *arg)
 		return BR_CFM_MEP_DIRECTION_DOWN;
 	if (strcmp(arg, "up") == 0)
 		return BR_CFM_MEP_DIRECTION_UP;
-	return BR_CFM_MEP_DIRECTION_DOWN;
+	return -1;
 }
 
-static int cmd_createmep(int argc, char *const *argv)
+static int cmd_create_mep(int argc, char *const *argv)
 {
 	uint32_t br_ifindex = 0, port_ifindex = 0, instance = 0, domain = 0, direction = 0;
 	uint16_t vid = 0;
-
-	printf("cmd_createmep\n");
 
 	/* skip the command */
 	argv++;
@@ -115,14 +113,15 @@ static int cmd_createmep(int argc, char *const *argv)
 	if (br_ifindex == 0 || instance == 0 || port_ifindex == 0)
 		return -1;
 
+	if (domain == -1 || direction == -1)
+		return -1;
+
 	return cfm_offload_create(br_ifindex, instance, domain, direction, vid, port_ifindex);
 }
 
-static int cmd_deletemep(int argc, char *const *argv)
+static int cmd_delete_mep(int argc, char *const *argv)
 {
 	uint32_t br_ifindex = 0, instance = 0;
-
-	printf("cmd_deletemep\n");
 
 	/* skip the command */
 	argv++;
@@ -146,10 +145,50 @@ static int cmd_deletemep(int argc, char *const *argv)
 	return cfm_offload_delete(br_ifindex, instance);
 }
 
-static int cmd_showmep(int argc, char *const *argv)
+static int cmd_mep_status(int argc, char *const *argv)
 {
-	printf("cmd_showmep\n");
-	return 1;
+	uint32_t br_ifindex = 0;
+
+	/* skip the command */
+	argv++;
+	argc -= 1;
+
+	while (argc > 0) {
+		if (strcmp(*argv, "bridge") == 0) {
+			NEXT_ARG();
+			br_ifindex = if_nametoindex(*argv);
+		}
+
+		argc--; argv++;
+	}
+
+	if (br_ifindex == 0)
+		return -1;
+
+	return cfm_offload_mep_status_print(br_ifindex);
+}
+
+static int cmd_mep_config(int argc, char *const *argv)
+{
+	uint32_t br_ifindex = 0;
+
+	/* skip the command */
+	argv++;
+	argc -= 1;
+
+	while (argc > 0) {
+		if (strcmp(*argv, "bridge") == 0) {
+			NEXT_ARG();
+			br_ifindex = if_nametoindex(*argv);
+		}
+
+		argc--; argv++;
+	}
+
+	if (br_ifindex == 0)
+		return -1;
+
+	return cfm_offload_mep_config_print(br_ifindex);
 }
 
 struct command
@@ -162,11 +201,14 @@ struct command
 
 static const struct command commands[] =
 {
-	{"createmep", cmd_createmep,
+	{"createmep", cmd_create_mep,
 	 "bridge <bridge> instance <instance> domain <domain> direction <direction> vid <vid> port <port>", "Create MEP instance"},
-	{"deletemep", cmd_deletemep,
+	{"deletemep", cmd_delete_mep,
 	 "bridge <bridge> instance <instance>", "Delete MEP instance"},
-	{"showmep", cmd_showmep, "", "Show MEP instances"},
+	{"mepstatus", cmd_mep_status,
+	 "bridge <bridge>", "Show MEP instances status"},
+	{"mepconfig", cmd_mep_config,
+	 "bridge <bridge>", "Show MEP instances configuration"},
 };
 
 static void command_helpall(void)
