@@ -122,34 +122,20 @@ static int cfm_print_config(struct nlmsghdr *n, void *arg)
 			continue;
 
 		parse_rtattr_nested(infotb, IFLA_BRIDGE_CFM_MEP_CREATE_MAX, i);
-		if (!infotb[IFLA_BRIDGE_CFM_MEP_CREATE_INSTANCE])
-			return 0;
 
-		printf("Instance %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_MEP_CREATE_INSTANCE]));
-		printf("Domain %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_MEP_CREATE_DOMAIN]));
-		printf("Direction %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_MEP_CREATE_DIRECTION]));
-		printf("Vid %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_MEP_CREATE_VID]));
-		printf("Ifindex %s\n", if_indextoname(rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_MEP_CREATE_IFINDEX]), ifname));
-		printf("\n");
-	}
-
-	list = aftb[IFLA_BRIDGE_CFM];
-	rem = RTA_PAYLOAD(list);
-
-	printf("CFM MEP config:\n");
-	for (i = RTA_DATA(list); RTA_OK(i, rem); i = RTA_NEXT(i, rem)) {
-		if (i->rta_type != IFLA_BRIDGE_CFM_CONFIG_INFO)
-			continue;
-
-		parse_rtattr_nested(infotb, IFLA_BRIDGE_CFM_MEP_CONFIG_MAX, i);
-		if (!infotb[IFLA_BRIDGE_CFM_MEP_CONFIG_INSTANCE])
-			return 0;
-
-		printf("Instance %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_MEP_CONFIG_INSTANCE]));
-		printf("Unicast_mac %s\n", rta_getattr_mac(infotb[IFLA_BRIDGE_CFM_MEP_CONFIG_UNICAST_MAC]));
-		printf("Mdlevel %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_MEP_CONFIG_MDLEVEL]));
-		printf("Mepid %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_MEP_CONFIG_MEPID]));
-		printf("Vid %u\n", rta_getattr_u16(infotb[IFLA_BRIDGE_CFM_MEP_CONFIG_VID]));
+		if (infotb[IFLA_BRIDGE_CFM_MEP_CREATE_INSTANCE]) {
+			printf("Instance %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_MEP_CREATE_INSTANCE]));
+			printf("Domain %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_MEP_CREATE_DOMAIN]));
+			printf("Direction %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_MEP_CREATE_DIRECTION]));
+			printf("Vid %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_MEP_CREATE_VID]));
+			printf("Ifindex %s\n", if_indextoname(rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_MEP_CREATE_IFINDEX]), ifname));
+		}
+		if (infotb[IFLA_BRIDGE_CFM_MEP_CONFIG_INSTANCE]) {
+			printf("Unicast_mac %s\n", rta_getattr_mac(infotb[IFLA_BRIDGE_CFM_MEP_CONFIG_UNICAST_MAC]));
+			printf("Mdlevel %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_MEP_CONFIG_MDLEVEL]));
+			printf("Mepid %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_MEP_CONFIG_MEPID]));
+			printf("Vid %u\n", rta_getattr_u16(infotb[IFLA_BRIDGE_CFM_MEP_CONFIG_VID]));
+		}
 		printf("\n");
 	}
 
@@ -191,7 +177,6 @@ static int cfm_print_status(struct nlmsghdr *n, void *arg)
 	for (i = RTA_DATA(list); RTA_OK(i, rem); i = RTA_NEXT(i, rem)) {
 		if (i->rta_type != IFLA_BRIDGE_CFM_MEP_STATUS_INFO)
 			continue;
-printf("1\n");
 
 		parse_rtattr_nested(infotb, IFLA_BRIDGE_CFM_MEP_STATUS_MAX, i);
 		if (!infotb[IFLA_BRIDGE_CFM_MEP_STATUS_INSTANCE])
