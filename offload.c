@@ -14,6 +14,7 @@
 
 #include "libnetlink.h"
 #include "list.h"
+#include "offload.h"
 
 struct rtnl_handle rth = { .fd = -1 };
 
@@ -82,6 +83,34 @@ static char *rta_getattr_mac(const struct rtattr *rta)
 	return buf_ret;
 }
 
+static char *rta_getattr_maid(const struct rtattr *rta, uint32_t maid_len)
+{
+	static char buf_ret[100];
+	char *maid;
+
+	memset(buf_ret, 0, sizeof(buf_ret));
+
+	if (maid_len > sizeof(*buf_ret))
+		return buf_ret;
+
+	maid = RTA_DATA(rta);
+	memcpy(buf_ret, &maid[3], maid_len);
+
+	return buf_ret;
+}
+
+int addattrmac(struct nlmsghdr *n, int maxlen, int type, struct mac_addr *mac)
+{
+//printf("addattrmac sizeof(*mac) %lu  rta_len %lu  mac %02X-%02X-%02X-%02X-%02X-%02X\n", sizeof(*mac), RTA_LENGTH(sizeof(mac->addr)), mac->addr[0], mac->addr[1], mac->addr[2], mac->addr[3], mac->addr[4], mac->addr[5]);
+	return addattr_l(n, maxlen, type, mac->addr, sizeof(mac->addr));
+}
+
+int addattrmaid(struct nlmsghdr *n, int maxlen, int type, struct maid_data *maid, uint32_t len)
+{
+//printf("addattrmaid sizeof(*maid) %lu  rta_len %lu  len %u  maid %02X-%02X-%02X-%s\n", sizeof(*maid), RTA_LENGTH(sizeof(maid->data)), len, maid->data[0], maid->data[1], maid->data[2], &maid->data[3]);
+	return addattr_l(n, maxlen, type, maid->data, len);
+}
+
 static int cfm_print_config(struct nlmsghdr *n, void *arg)
 {
 	struct rtattr *aftb[IFLA_BRIDGE_MAX + 1];
@@ -124,17 +153,53 @@ static int cfm_print_config(struct nlmsghdr *n, void *arg)
 		parse_rtattr_nested(infotb, IFLA_BRIDGE_CFM_MEP_CREATE_MAX, i);
 
 		if (infotb[IFLA_BRIDGE_CFM_MEP_CREATE_INSTANCE]) {
-			printf("Instance %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_MEP_CREATE_INSTANCE]));
-			printf("Domain %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_MEP_CREATE_DOMAIN]));
-			printf("Direction %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_MEP_CREATE_DIRECTION]));
-			printf("Vid %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_MEP_CREATE_VID]));
-			printf("Ifindex %s\n", if_indextoname(rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_MEP_CREATE_IFINDEX]), ifname));
+			printf("Create Instance %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_MEP_CREATE_INSTANCE]));
+			printf("    Domain %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_MEP_CREATE_DOMAIN]));
+			printf("    Direction %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_MEP_CREATE_DIRECTION]));
+			printf("    Vid %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_MEP_CREATE_VID]));
+			printf("    Ifindex %s\n", if_indextoname(rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_MEP_CREATE_IFINDEX]), ifname));
 		}
+		printf("\n");
+	}
+
+	list = aftb[IFLA_BRIDGE_CFM];
+	rem = RTA_PAYLOAD(list);
+
+	printf("CFM MEP config:\n");
+	for (i = RTA_DATA(list); RTA_OK(i, rem); i = RTA_NEXT(i, rem)) {
+		if (i->rta_type != IFLA_BRIDGE_CFM_CONFIG_INFO)
+			continue;
+
+		parse_rtattr_nested(infotb, IFLA_BRIDGE_CFM_MEP_CONFIG_MAX, i);
+
 		if (infotb[IFLA_BRIDGE_CFM_MEP_CONFIG_INSTANCE]) {
-			printf("Unicast_mac %s\n", rta_getattr_mac(infotb[IFLA_BRIDGE_CFM_MEP_CONFIG_UNICAST_MAC]));
-			printf("Mdlevel %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_MEP_CONFIG_MDLEVEL]));
-			printf("Mepid %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_MEP_CONFIG_MEPID]));
-			printf("Vid %u\n", rta_getattr_u16(infotb[IFLA_BRIDGE_CFM_MEP_CONFIG_VID]));
+			printf("Config Instance %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_MEP_CONFIG_INSTANCE]));
+			printf("    Unicast_mac %s\n", rta_getattr_mac(infotb[IFLA_BRIDGE_CFM_MEP_CONFIG_UNICAST_MAC]));
+			printf("    Mdlevel %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_MEP_CONFIG_MDLEVEL]));
+			printf("    Mepid %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_MEP_CONFIG_MEPID]));
+			printf("    Vid %u\n", rta_getattr_u16(infotb[IFLA_BRIDGE_CFM_MEP_CONFIG_VID]));
+		}
+		printf("\n");
+	}
+
+	list = aftb[IFLA_BRIDGE_CFM];
+	rem = RTA_PAYLOAD(list);
+
+	printf("CFM MEP cc_config:\n");
+	for (i = RTA_DATA(list); RTA_OK(i, rem); i = RTA_NEXT(i, rem)) {
+		if (i->rta_type != IFLA_BRIDGE_CFM_CC_CONFIG_INFO)
+			continue;
+
+		parse_rtattr_nested(infotb, IFLA_BRIDGE_CFM_CC_CONFIG_MAX, i);
+
+		if (infotb[IFLA_BRIDGE_CFM_CC_CONFIG_INSTANCE]) {
+			printf("CC-config Instance %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_CONFIG_INSTANCE]));
+			printf("    Enable %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_CONFIG_ENABLE]));
+			printf("    Interval %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_CONFIG_EXPECTED_INTERVAL]));
+			printf("    Priority %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_CONFIG_EXPECTED_PRIORITY]));
+			printf("    Maid-name %s\n",
+				rta_getattr_maid(infotb[IFLA_BRIDGE_CFM_CC_CONFIG_EXPECTED_MAID],
+						 rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_CONFIG_EXPECTED_MAID_LEN])));
 		}
 		printf("\n");
 	}
@@ -241,6 +306,125 @@ int cfm_offload_delete(uint32_t br_ifindex, uint32_t instance)
 
 	addattr32(&req.n, sizeof(req), IFLA_BRIDGE_CFM_MEP_DELETE_INSTANCE,
 		  instance);
+
+	return cfm_nl_terminate(&req, afspec, af, af_sub);
+}
+
+int cfm_offload_config(uint32_t br_ifindex, uint32_t instance, struct mac_addr *mac,
+		       uint32_t level, uint32_t mepid, uint16_t vid)
+{
+	struct rtattr *afspec, *af, *af_sub;
+	struct request req = { 0 };
+
+	cfm_nl_bridge_prepare(br_ifindex, RTM_SETLINK, &req, &afspec,
+			      &af, &af_sub, IFLA_BRIDGE_CFM_MEP_CONFIG);
+
+	addattr32(&req.n, sizeof(req), IFLA_BRIDGE_CFM_MEP_CONFIG_INSTANCE,
+		  instance);
+	addattrmac(&req.n, sizeof(req), IFLA_BRIDGE_CFM_MEP_CONFIG_UNICAST_MAC,
+		   mac);
+	addattr32(&req.n, sizeof(req), IFLA_BRIDGE_CFM_MEP_CONFIG_MDLEVEL,
+		  level);
+	addattr32(&req.n, sizeof(req), IFLA_BRIDGE_CFM_MEP_CONFIG_MEPID,
+		  mepid);
+	addattr16(&req.n, sizeof(req), IFLA_BRIDGE_CFM_MEP_CONFIG_VID,
+		  vid);
+
+	return cfm_nl_terminate(&req, afspec, af, af_sub);
+}
+
+int cfm_offload_cc_config(uint32_t br_ifindex, uint32_t instance, uint32_t enable,
+			  uint32_t interval, uint32_t priority, struct maid_data *maid, uint32_t maid_len)
+{
+	struct rtattr *afspec, *af, *af_sub;
+	struct request req = { 0 };
+
+	cfm_nl_bridge_prepare(br_ifindex, RTM_SETLINK, &req, &afspec,
+			      &af, &af_sub, IFLA_BRIDGE_CFM_CC_CONFIG);
+
+	addattr32(&req.n, sizeof(req), IFLA_BRIDGE_CFM_CC_CONFIG_INSTANCE,
+		  instance);
+	addattr32(&req.n, sizeof(req), IFLA_BRIDGE_CFM_CC_CONFIG_ENABLE,
+		  enable);
+	addattr32(&req.n, sizeof(req), IFLA_BRIDGE_CFM_CC_CONFIG_EXPECTED_INTERVAL,
+		  interval);
+	addattr32(&req.n, sizeof(req), IFLA_BRIDGE_CFM_CC_CONFIG_EXPECTED_PRIORITY,
+		  priority);
+	addattr32(&req.n, sizeof(req), IFLA_BRIDGE_CFM_CC_CONFIG_EXPECTED_MAID_LEN,
+		  maid_len);
+	addattrmaid(&req.n, sizeof(req), IFLA_BRIDGE_CFM_CC_CONFIG_EXPECTED_MAID,
+		    maid, maid_len);
+
+	return cfm_nl_terminate(&req, afspec, af, af_sub);
+}
+
+int cfm_offload_cc_peer(uint32_t br_ifindex, uint32_t instance, uint32_t remove, uint32_t mepid)
+{
+	struct rtattr *afspec, *af, *af_sub;
+	struct request req = { 0 };
+	int attr;
+
+	attr = (remove) ? IFLA_BRIDGE_CFM_CC_PEER_MEP_REMOVE : IFLA_BRIDGE_CFM_CC_PEER_MEP_ADD;
+
+	cfm_nl_bridge_prepare(br_ifindex, RTM_SETLINK, &req, &afspec, &af,
+			      &af_sub, attr);
+
+	addattr32(&req.n, sizeof(req), IFLA_BRIDGE_CFM_CC_PEER_MEP_INSTANCE,
+		  instance);
+	addattr32(&req.n, sizeof(req), IFLA_BRIDGE_CFM_CC_PEER_MEP_ID,
+		  mepid);
+
+	return cfm_nl_terminate(&req, afspec, af, af_sub);
+}
+
+int cfm_offload_cc_rdi(uint32_t br_ifindex, uint32_t instance, uint32_t rdi)
+{
+	struct rtattr *afspec, *af, *af_sub;
+	struct request req = { 0 };
+
+	cfm_nl_bridge_prepare(br_ifindex, RTM_SETLINK, &req, &afspec, &af,
+			      &af_sub, IFLA_BRIDGE_CFM_CC_RDI);
+
+	addattr32(&req.n, sizeof(req), IFLA_BRIDGE_CFM_CC_RDI_INSTANCE,
+		  instance);
+	addattr32(&req.n, sizeof(req), IFLA_BRIDGE_CFM_CC_RDI_RDI,
+		  rdi);
+
+	return cfm_nl_terminate(&req, afspec, af, af_sub);
+}
+
+int cfm_offload_cc_ccm_tx(uint32_t br_ifindex, uint32_t instance, uint32_t priority, uint32_t dei, struct mac_addr *dmac,
+			  uint32_t sequence, uint32_t interval, uint32_t period, uint32_t iftlv, uint32_t iftlv_value,
+			  uint32_t porttlv, uint32_t porttlv_value)
+{
+	struct rtattr *afspec, *af, *af_sub;
+	struct request req = { 0 };
+
+	cfm_nl_bridge_prepare(br_ifindex, RTM_SETLINK, &req, &afspec,
+			      &af, &af_sub, IFLA_BRIDGE_CFM_CC_CCM_TX);
+
+	addattr32(&req.n, sizeof(req), IFLA_BRIDGE_CFM_CC_CCM_TX_INSTANCE,
+		  instance);
+	addattr32(&req.n, sizeof(req), IFLA_BRIDGE_CFM_CC_CCM_TX_PRIORITY,
+		  priority);
+	addattr32(&req.n, sizeof(req), IFLA_BRIDGE_CFM_CC_CCM_TX_DEI,
+		  dei);
+	addattrmac(&req.n, sizeof(req), IFLA_BRIDGE_CFM_CC_CCM_TX_DMAC,
+		   dmac);
+	addattr32(&req.n, sizeof(req), IFLA_BRIDGE_CFM_CC_CCM_TX_SEQ_NO_UPDATE,
+		  sequence);
+	addattr32(&req.n, sizeof(req), IFLA_BRIDGE_CFM_CC_CCM_TX_INTERVAL,
+		  interval);
+	addattr32(&req.n, sizeof(req), IFLA_BRIDGE_CFM_CC_CCM_TX_PERIOD,
+		  period);
+	addattr32(&req.n, sizeof(req), IFLA_BRIDGE_CFM_CC_CCM_TX_IF_TLV,
+		  iftlv);
+	addattr32(&req.n, sizeof(req), IFLA_BRIDGE_CFM_CC_CCM_TX_IF_TLV_VALUE,
+		  iftlv_value);
+	addattr32(&req.n, sizeof(req), IFLA_BRIDGE_CFM_CC_CCM_TX_PORT_TLV,
+		  porttlv);
+	addattr32(&req.n, sizeof(req), IFLA_BRIDGE_CFM_CC_CCM_TX_PORT_TLV_VALUE,
+		  porttlv_value);
 
 	return cfm_nl_terminate(&req, afspec, af, af_sub);
 }
