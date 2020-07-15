@@ -20,7 +20,7 @@ int cfm_offload_delete(uint32_t br_ifindex, uint32_t instance);
 int cfm_offload_config(uint32_t br_ifindex, uint32_t instance, struct mac_addr *mac, uint32_t level,
 		       uint32_t mepid, uint16_t vid);
 int cfm_offload_cc_config(uint32_t br_ifindex, uint32_t instance, uint32_t enable,
-			  uint32_t interval, uint32_t priority, struct maid_data *maid, uint32_t maid_len);
+			  uint32_t interval, uint32_t priority, struct maid_data *maid);
 int cfm_offload_cc_rdi(uint32_t br_ifindex, uint32_t instance, uint32_t rdi);
 int cfm_offload_cc_peer(uint32_t br_ifindex, uint32_t instance, uint32_t remove, uint32_t mepid);
 int cfm_offload_cc_ccm_tx(uint32_t br_ifindex, uint32_t instance, uint32_t priority, uint32_t dei, struct mac_addr *dmac,

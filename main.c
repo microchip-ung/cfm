@@ -245,7 +245,7 @@ static int cmd_config_mep(int argc, char *const *argv)
 
 static int cmd_cc_config(int argc, char *const *argv)
 {
-	uint32_t br_ifindex = 0, enable = 0, interval = 0, priority = 0, instance = 0, maid_len = 0;
+	uint32_t br_ifindex = 0, enable = 0, interval = 0, priority = 0, instance = 0;
 	struct maid_data maid;
 
 	memset(&maid, 0, sizeof(maid));
@@ -273,7 +273,6 @@ static int cmd_cc_config(int argc, char *const *argv)
 		} else if (strcmp(*argv, "maid-name") == 0) {
 			NEXT_ARG();
 			maid = maid_array(*argv);
-			maid_len = strlen(*argv) + 3;
 		}
 
 		argc--; argv++;
@@ -285,7 +284,7 @@ static int cmd_cc_config(int argc, char *const *argv)
 	if (interval == -1)
 		return -1;
 
-	return cfm_offload_cc_config(br_ifindex, instance, enable, interval, priority, &maid, maid_len);
+	return cfm_offload_cc_config(br_ifindex, instance, enable, interval, priority, &maid);
 }
 
 static int cmd_cc_rdi(int argc, char *const *argv)

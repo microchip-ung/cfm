@@ -83,18 +83,15 @@ static char *rta_getattr_mac(const struct rtattr *rta)
 	return buf_ret;
 }
 
-static char *rta_getattr_maid(const struct rtattr *rta, uint32_t maid_len)
+static char *rta_getattr_maid(const struct rtattr *rta)
 {
 	static char buf_ret[100];
 	char *maid;
 
 	memset(buf_ret, 0, sizeof(buf_ret));
 
-	if (maid_len > sizeof(*buf_ret))
-		return buf_ret;
-
 	maid = RTA_DATA(rta);
-	memcpy(buf_ret, &maid[3], maid_len);
+	strncpy(buf_ret, &maid[3], sizeof(buf_ret));
 
 	return buf_ret;
 }
@@ -105,10 +102,10 @@ int addattrmac(struct nlmsghdr *n, int maxlen, int type, struct mac_addr *mac)
 	return addattr_l(n, maxlen, type, mac->addr, sizeof(mac->addr));
 }
 
-int addattrmaid(struct nlmsghdr *n, int maxlen, int type, struct maid_data *maid, uint32_t len)
+int addattrmaid(struct nlmsghdr *n, int maxlen, int type, struct maid_data *maid)
 {
 //printf("addattrmaid sizeof(*maid) %lu  rta_len %lu  len %u  maid %02X-%02X-%02X-%s\n", sizeof(*maid), RTA_LENGTH(sizeof(maid->data)), len, maid->data[0], maid->data[1], maid->data[2], &maid->data[3]);
-	return addattr_l(n, maxlen, type, maid->data, len);
+	return addattr_l(n, maxlen, type, maid->data, sizeof(maid->data));
 }
 
 static int cfm_print_config(struct nlmsghdr *n, void *arg)
@@ -120,6 +117,7 @@ static int cfm_print_config(struct nlmsghdr *n, void *arg)
 	int len = n->nlmsg_len;
 	struct rtattr *i, *list;
 	int rem;
+	uint32_t instance;
 	char ifname[IF_NAMESIZE];
 
 	memset(ifname, 0, IF_NAMESIZE);
@@ -198,11 +196,33 @@ static int cfm_print_config(struct nlmsghdr *n, void *arg)
 			printf("    Interval %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_CONFIG_EXPECTED_INTERVAL]));
 			printf("    Priority %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_CONFIG_EXPECTED_PRIORITY]));
 			printf("    Maid-name %s\n",
-				rta_getattr_maid(infotb[IFLA_BRIDGE_CFM_CC_CONFIG_EXPECTED_MAID],
-						 rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_CONFIG_EXPECTED_MAID_LEN])));
+				rta_getattr_maid(infotb[IFLA_BRIDGE_CFM_CC_CONFIG_EXPECTED_MAID]));
 		}
 		printf("\n");
 	}
+
+	list = aftb[IFLA_BRIDGE_CFM];
+	rem = RTA_PAYLOAD(list);
+
+	printf("CFM MEP cc_peer_config:");
+	instance = 0xFFFFFFFF;
+	for (i = RTA_DATA(list); RTA_OK(i, rem); i = RTA_NEXT(i, rem)) {
+		if (i->rta_type != IFLA_BRIDGE_CFM_CC_PEER_MEP_INFO)
+			continue;
+
+		parse_rtattr_nested(infotb, IFLA_BRIDGE_CFM_CC_PEER_MEP_MAX, i);
+
+		if (infotb[IFLA_BRIDGE_CFM_CC_PEER_MEP_INSTANCE]) {
+			if (instance != rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_PEER_MEP_INSTANCE])) {
+				instance = rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_PEER_MEP_INSTANCE]);
+				printf("\n");
+				printf("CC-peer-config Instance %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_PEER_MEP_INSTANCE]));
+				printf("    Peer-mep ");
+			}
+			printf(" %u", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_PEER_MEP_ID]));
+		}
+	}
+	printf("\n\n");
 
 	return 0;
 }
@@ -334,7 +354,7 @@ int cfm_offload_config(uint32_t br_ifindex, uint32_t instance, struct mac_addr *
 }
 
 int cfm_offload_cc_config(uint32_t br_ifindex, uint32_t instance, uint32_t enable,
-			  uint32_t interval, uint32_t priority, struct maid_data *maid, uint32_t maid_len)
+			  uint32_t interval, uint32_t priority, struct maid_data *maid)
 {
 	struct rtattr *afspec, *af, *af_sub;
 	struct request req = { 0 };
@@ -350,10 +370,8 @@ int cfm_offload_cc_config(uint32_t br_ifindex, uint32_t instance, uint32_t enabl
 		  interval);
 	addattr32(&req.n, sizeof(req), IFLA_BRIDGE_CFM_CC_CONFIG_EXPECTED_PRIORITY,
 		  priority);
-	addattr32(&req.n, sizeof(req), IFLA_BRIDGE_CFM_CC_CONFIG_EXPECTED_MAID_LEN,
-		  maid_len);
 	addattrmaid(&req.n, sizeof(req), IFLA_BRIDGE_CFM_CC_CONFIG_EXPECTED_MAID,
-		    maid, maid_len);
+		    maid);
 
 	return cfm_nl_terminate(&req, afspec, af, af_sub);
 }
