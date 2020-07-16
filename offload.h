@@ -14,11 +14,12 @@ struct maid_data {
 	unsigned char data[BR_CFM_MAID_LENGTH];
 };
 
-int cfm_offload_create(uint32_t br_ifindex, uint32_t instance, uint32_t domain, uint32_t direction,
-		       uint16_t vid, uint32_t ifindex);
-int cfm_offload_delete(uint32_t br_ifindex, uint32_t instance);
-int cfm_offload_config(uint32_t br_ifindex, uint32_t instance, struct mac_addr *mac, uint32_t level,
-		       uint32_t mepid, uint16_t vid);
+int cfm_offload_mep_create(uint32_t br_ifindex, uint32_t instance, uint32_t domain, uint32_t direction,
+			   uint16_t vid, uint32_t ifindex);
+int cfm_offload_mep_delete(uint32_t br_ifindex, uint32_t instance);
+int cfm_offload_mep_config(uint32_t br_ifindex, uint32_t instance, struct mac_addr *mac, uint32_t level,
+			   uint32_t mepid, uint16_t vid);
+int cfm_offload_mep_cnt_clear(uint32_t br_ifindex, uint32_t instance);
 int cfm_offload_cc_config(uint32_t br_ifindex, uint32_t instance, uint32_t enable,
 			  uint32_t interval, uint32_t priority, struct maid_data *maid);
 int cfm_offload_cc_rdi(uint32_t br_ifindex, uint32_t instance, uint32_t rdi);
@@ -26,9 +27,10 @@ int cfm_offload_cc_peer(uint32_t br_ifindex, uint32_t instance, uint32_t remove,
 int cfm_offload_cc_ccm_tx(uint32_t br_ifindex, uint32_t instance, uint32_t priority, uint32_t dei, struct mac_addr *dmac,
 			  uint32_t sequence, uint32_t interval, uint32_t period, uint32_t iftlv, uint32_t iftlv_value,
 			  uint32_t porttlv, uint32_t porttlv_value);
+int cfm_offload_cc_cnt_clear(uint32_t br_ifindex, uint32_t instance);
 
 int cfm_offload_init(void);
-int cfm_offload_mep_config_print(uint32_t br_ifindex);
-int cfm_offload_mep_status_print(uint32_t br_ifindex);
+int cfm_offload_mep_config_show(uint32_t br_ifindex);
+int cfm_offload_mep_status_show(uint32_t br_ifindex);
 
 #endif
