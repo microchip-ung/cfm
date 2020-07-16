@@ -151,7 +151,7 @@ static int cfm_print_config(struct nlmsghdr *n, void *arg)
 		parse_rtattr_nested(infotb, IFLA_BRIDGE_CFM_MEP_CREATE_MAX, i);
 
 		if (infotb[IFLA_BRIDGE_CFM_MEP_CREATE_INSTANCE]) {
-			printf("Create Instance %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_MEP_CREATE_INSTANCE]));
+			printf("Instance %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_MEP_CREATE_INSTANCE]));
 			printf("    Domain %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_MEP_CREATE_DOMAIN]));
 			printf("    Direction %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_MEP_CREATE_DIRECTION]));
 			printf("    Vid %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_MEP_CREATE_VID]));
@@ -171,7 +171,7 @@ static int cfm_print_config(struct nlmsghdr *n, void *arg)
 		parse_rtattr_nested(infotb, IFLA_BRIDGE_CFM_MEP_CONFIG_MAX, i);
 
 		if (infotb[IFLA_BRIDGE_CFM_MEP_CONFIG_INSTANCE]) {
-			printf("Config Instance %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_MEP_CONFIG_INSTANCE]));
+			printf("Instance %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_MEP_CONFIG_INSTANCE]));
 			printf("    Unicast_mac %s\n", rta_getattr_mac(infotb[IFLA_BRIDGE_CFM_MEP_CONFIG_UNICAST_MAC]));
 			printf("    Mdlevel %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_MEP_CONFIG_MDLEVEL]));
 			printf("    Mepid %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_MEP_CONFIG_MEPID]));
@@ -191,7 +191,7 @@ static int cfm_print_config(struct nlmsghdr *n, void *arg)
 		parse_rtattr_nested(infotb, IFLA_BRIDGE_CFM_CC_CONFIG_MAX, i);
 
 		if (infotb[IFLA_BRIDGE_CFM_CC_CONFIG_INSTANCE]) {
-			printf("CC-config Instance %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_CONFIG_INSTANCE]));
+			printf("Instance %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_CONFIG_INSTANCE]));
 			printf("    Enable %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_CONFIG_ENABLE]));
 			printf("    Interval %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_CONFIG_EXPECTED_INTERVAL]));
 			printf("    Priority %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_CONFIG_EXPECTED_PRIORITY]));
@@ -216,13 +216,56 @@ static int cfm_print_config(struct nlmsghdr *n, void *arg)
 			if (instance != rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_PEER_MEP_INSTANCE])) {
 				instance = rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_PEER_MEP_INSTANCE]);
 				printf("\n");
-				printf("CC-peer-config Instance %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_PEER_MEP_INSTANCE]));
+				printf("Instance %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_PEER_MEP_INSTANCE]));
 				printf("    Peer-mep ");
 			}
 			printf(" %u", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_PEER_MEP_ID]));
 		}
 	}
 	printf("\n\n");
+
+	list = aftb[IFLA_BRIDGE_CFM];
+	rem = RTA_PAYLOAD(list);
+
+	printf("CFM MEP cc_ccm_tx_config:\n");
+	for (i = RTA_DATA(list); RTA_OK(i, rem); i = RTA_NEXT(i, rem)) {
+		if (i->rta_type != IFLA_BRIDGE_CFM_CC_CCM_TX_INFO)
+			continue;
+
+		parse_rtattr_nested(infotb, IFLA_BRIDGE_CFM_CC_CCM_TX_MAX, i);
+
+		if (infotb[IFLA_BRIDGE_CFM_CC_CCM_TX_INSTANCE]) {
+			printf("Instance %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_CCM_TX_INSTANCE]));
+			printf("    Priority %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_CCM_TX_PRIORITY]));
+			printf("    Dei %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_CCM_TX_DEI]));
+			printf("    Dmac %s\n", rta_getattr_mac(infotb[IFLA_BRIDGE_CFM_CC_CCM_TX_DMAC]));
+			printf("    sequence %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_CCM_TX_SEQ_NO_UPDATE]));
+			printf("    interval %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_CCM_TX_INTERVAL]));
+			printf("    period %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_CCM_TX_PERIOD]));
+			printf("    iftlv %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_CCM_TX_IF_TLV]));
+			printf("    iftlv-value %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_CCM_TX_IF_TLV_VALUE]));
+			printf("    porttlv %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_CCM_TX_PORT_TLV]));
+			printf("    porttlv-value %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_CCM_TX_PORT_TLV_VALUE]));
+		}
+		printf("\n");
+	}
+
+	list = aftb[IFLA_BRIDGE_CFM];
+	rem = RTA_PAYLOAD(list);
+
+	printf("CFM MEP cc_rdi_config:\n");
+	for (i = RTA_DATA(list); RTA_OK(i, rem); i = RTA_NEXT(i, rem)) {
+		if (i->rta_type != IFLA_BRIDGE_CFM_CC_RDI_INFO)
+			continue;
+
+		parse_rtattr_nested(infotb, IFLA_BRIDGE_CFM_CC_RDI_MAX, i);
+
+		if (infotb[IFLA_BRIDGE_CFM_CC_RDI_INSTANCE]) {
+			printf("Instance %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_RDI_INSTANCE]));
+			printf("    Rdi %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_RDI_RDI]));
+		}
+		printf("\n");
+	}
 
 	return 0;
 }
@@ -268,11 +311,11 @@ static int cfm_print_status(struct nlmsghdr *n, void *arg)
 			return 0;
 
 		printf("Instance %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_MEP_STATUS_INSTANCE]));
-		printf("Opcode unexp seen %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_MEP_STATUS_OPCODE_UNEXP_SEEN]));
-		printf("Opcode unexp seen %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_MEP_STATUS_DMAC_UNEXP_SEEN]));
-		printf("Tx level low seen %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_MEP_STATUS_TX_LEVEL_LOW_SEEN]));
-		printf("Version unexp seen %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_MEP_STATUS_VERSION_UNEXP_SEEN]));
-		printf("Rx level low seen %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_MEP_STATUS_RX_LEVEL_LOW_SEEN]));
+		printf("    Opcode unexp seen %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_MEP_STATUS_OPCODE_UNEXP_SEEN]));
+		printf("    Opcode unexp seen %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_MEP_STATUS_DMAC_UNEXP_SEEN]));
+		printf("    Tx level low seen %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_MEP_STATUS_TX_LEVEL_LOW_SEEN]));
+		printf("    Version unexp seen %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_MEP_STATUS_VERSION_UNEXP_SEEN]));
+		printf("    Rx level low seen %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_MEP_STATUS_RX_LEVEL_LOW_SEEN]));
 		printf("\n");
 	}
 

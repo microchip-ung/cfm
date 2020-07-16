@@ -374,6 +374,7 @@ static int cmd_cc_ccm_tx(int argc, char *const *argv)
 			NEXT_ARG();
 			dei = atoi(*argv);
 		} else if (strcmp(*argv, "dmac") == 0) {
+			NEXT_ARG();
 			if (strlen(*argv) != 17)	/* Must be 17 characters to be XX-XX-XX-XX-XX-XX format */
 				return -1;
 			dmac = mac_array(*argv);
@@ -402,7 +403,6 @@ static int cmd_cc_ccm_tx(int argc, char *const *argv)
 
 		argc--; argv++;
 	}
-
 	if (br_ifindex == 0 || instance == 0)
 		return -1;
 
@@ -489,7 +489,7 @@ static const struct command commands[] =
 	 "bridge <bridge> instance <instance> priority <priority> dei <dei> dmac <dmac> "
 	 "sequence <sequence> interval <interval> period <period> iftlv <iftlv> iftlv-value "
 	 "<iftlv-value> porttlv <porttlv> porttlv-value <porttlv-value>",
-	 "Configure CC RDI insertion"},
+	 "Configure CC CCM TX"},
 	{"mep-status", cmd_mep_status,
 	 "bridge <bridge>", "Show MEP instances status"},
 	{"mep-config", cmd_mep_config,
