@@ -193,10 +193,10 @@ static int cfm_mep_config_show(struct nlmsghdr *n, void *arg)
 		if (infotb[IFLA_BRIDGE_CFM_CC_CONFIG_INSTANCE]) {
 			printf("Instance %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_CONFIG_INSTANCE]));
 			printf("    Enable %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_CONFIG_ENABLE]));
-			printf("    Interval %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_CONFIG_EXPECTED_INTERVAL]));
-			printf("    Priority %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_CONFIG_EXPECTED_PRIORITY]));
+			printf("    Interval %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_CONFIG_EXP_INTERVAL]));
+			printf("    Priority %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_CONFIG_EXP_PRIORITY]));
 			printf("    Maid-name %s\n",
-				rta_getattr_maid(infotb[IFLA_BRIDGE_CFM_CC_CONFIG_EXPECTED_MAID]));
+				rta_getattr_maid(infotb[IFLA_BRIDGE_CFM_CC_CONFIG_EXP_MAID]));
 		}
 		printf("\n");
 	}
@@ -240,7 +240,6 @@ static int cfm_mep_config_show(struct nlmsghdr *n, void *arg)
 			printf("    Dei %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_CCM_TX_DEI]));
 			printf("    Dmac %s\n", rta_getattr_mac(infotb[IFLA_BRIDGE_CFM_CC_CCM_TX_DMAC]));
 			printf("    sequence %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_CCM_TX_SEQ_NO_UPDATE]));
-			printf("    interval %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_CCM_TX_INTERVAL]));
 			printf("    period %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_CCM_TX_PERIOD]));
 			printf("    iftlv %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_CCM_TX_IF_TLV]));
 			printf("    iftlv-value %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_CCM_TX_IF_TLV_VALUE]));
@@ -519,11 +518,11 @@ int cfm_offload_cc_config(uint32_t br_ifindex, uint32_t instance, uint32_t enabl
 		  instance);
 	addattr32(&req.n, sizeof(req), IFLA_BRIDGE_CFM_CC_CONFIG_ENABLE,
 		  enable);
-	addattr32(&req.n, sizeof(req), IFLA_BRIDGE_CFM_CC_CONFIG_EXPECTED_INTERVAL,
+	addattr32(&req.n, sizeof(req), IFLA_BRIDGE_CFM_CC_CONFIG_EXP_INTERVAL,
 		  interval);
-	addattr32(&req.n, sizeof(req), IFLA_BRIDGE_CFM_CC_CONFIG_EXPECTED_PRIORITY,
+	addattr32(&req.n, sizeof(req), IFLA_BRIDGE_CFM_CC_CONFIG_EXP_PRIORITY,
 		  priority);
-	addattrmaid(&req.n, sizeof(req), IFLA_BRIDGE_CFM_CC_CONFIG_EXPECTED_MAID,
+	addattrmaid(&req.n, sizeof(req), IFLA_BRIDGE_CFM_CC_CONFIG_EXP_MAID,
 		    maid);
 
 	return cfm_nl_terminate(&req, afspec, af, af_sub);
@@ -564,9 +563,9 @@ int cfm_offload_cc_rdi(uint32_t br_ifindex, uint32_t instance, uint32_t rdi)
 	return cfm_nl_terminate(&req, afspec, af, af_sub);
 }
 
-int cfm_offload_cc_ccm_tx(uint32_t br_ifindex, uint32_t instance, uint32_t priority, uint32_t dei, struct mac_addr *dmac,
-			  uint32_t sequence, uint32_t interval, uint32_t period, uint32_t iftlv, uint32_t iftlv_value,
-			  uint32_t porttlv, uint32_t porttlv_value)
+int cfm_offload_cc_ccm_tx(uint32_t br_ifindex, uint32_t instance, uint32_t priority, uint32_t dei,
+			  struct mac_addr *dmac, uint32_t sequence, uint32_t period, uint32_t iftlv,
+			  uint32_t iftlv_value, uint32_t porttlv, uint32_t porttlv_value)
 {
 	struct rtattr *afspec, *af, *af_sub;
 	struct request req = { 0 };
@@ -584,8 +583,6 @@ int cfm_offload_cc_ccm_tx(uint32_t br_ifindex, uint32_t instance, uint32_t prior
 		   dmac);
 	addattr32(&req.n, sizeof(req), IFLA_BRIDGE_CFM_CC_CCM_TX_SEQ_NO_UPDATE,
 		  sequence);
-	addattr32(&req.n, sizeof(req), IFLA_BRIDGE_CFM_CC_CCM_TX_INTERVAL,
-		  interval);
 	addattr32(&req.n, sizeof(req), IFLA_BRIDGE_CFM_CC_CCM_TX_PERIOD,
 		  period);
 	addattr32(&req.n, sizeof(req), IFLA_BRIDGE_CFM_CC_CCM_TX_IF_TLV,

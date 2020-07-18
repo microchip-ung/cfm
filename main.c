@@ -376,8 +376,8 @@ static int cmd_cc_peer(int argc, char *const *argv)
 
 static int cmd_cc_ccm_tx(int argc, char *const *argv)
 {
-	uint32_t br_ifindex = 0, interval = 0, priority = 0, instance = 0, dei = 0,
-		 sequence = 0, period = 0, iftlv = 0, iftlv_value = 0, porttlv = 0, porttlv_value = 0;
+	uint32_t br_ifindex = 0, priority = 0, instance = 0, dei = 0, sequence = 0,
+		 period = 0, iftlv = 0, iftlv_value = 0, porttlv = 0, porttlv_value = 0;
 	struct mac_addr dmac;
 
 	memset(&dmac, 0, sizeof(dmac));
@@ -407,9 +407,6 @@ static int cmd_cc_ccm_tx(int argc, char *const *argv)
 		} else if (strcmp(*argv, "sequence") == 0) {
 			NEXT_ARG();
 			sequence = atoi(*argv);
-		} else if (strcmp(*argv, "interval") == 0) {
-			NEXT_ARG();
-			interval = interval_int(*argv);
 		} else if (strcmp(*argv, "period") == 0) {
 			NEXT_ARG();
 			period = atoi(*argv);
@@ -432,10 +429,7 @@ static int cmd_cc_ccm_tx(int argc, char *const *argv)
 	if (br_ifindex == 0 || instance == 0)
 		return -1;
 
-	if (interval == -1)
-		return -1;
-
-	return cfm_offload_cc_ccm_tx(br_ifindex, instance, priority, dei, &dmac, sequence, interval,
+	return cfm_offload_cc_ccm_tx(br_ifindex, instance, priority, dei, &dmac, sequence,
 				     period, iftlv, iftlv_value, porttlv, porttlv_value);
 }
 
@@ -539,7 +533,7 @@ static const struct command commands[] =
 	 "bridge <bridge> instance <instance> rdi <rdi>", "Configure CC RDI insertion"},
 	{"cc-ccm-tx", cmd_cc_ccm_tx,
 	 "bridge <bridge> instance <instance> priority <priority> dei <dei> dmac <dmac> "
-	 "sequence <sequence> interval <interval> period <period> iftlv <iftlv> iftlv-value "
+	 "sequence <sequence> period <period> iftlv <iftlv> iftlv-value "
 	 "<iftlv-value> porttlv <porttlv> porttlv-value <porttlv-value>",
 	 "Configure CC CCM TX"},
 	{"mep-cnt-clear", cmd_mep_cnt_clear,
