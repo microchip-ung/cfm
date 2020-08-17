@@ -194,7 +194,7 @@ static int cfm_mep_config_show(struct nlmsghdr *n, void *arg)
 			printf("Instance %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_CONFIG_INSTANCE]));
 			printf("    Enable %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_CONFIG_ENABLE]));
 			printf("    Interval %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_CONFIG_EXP_INTERVAL]));
-			printf("    Priority %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_CONFIG_EXP_PRIORITY]));
+			printf("    Priority %u\n", rta_getattr_u8(infotb[IFLA_BRIDGE_CFM_CC_CONFIG_EXP_PRIORITY]));
 			printf("    Maid-name %s\n",
 				rta_getattr_maid(infotb[IFLA_BRIDGE_CFM_CC_CONFIG_EXP_MAID]));
 		}
@@ -236,15 +236,15 @@ static int cfm_mep_config_show(struct nlmsghdr *n, void *arg)
 
 		if (infotb[IFLA_BRIDGE_CFM_CC_CCM_TX_INSTANCE]) {
 			printf("Instance %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_CCM_TX_INSTANCE]));
-			printf("    Priority %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_CCM_TX_PRIORITY]));
+			printf("    Priority %u\n", rta_getattr_u8(infotb[IFLA_BRIDGE_CFM_CC_CCM_TX_PRIORITY]));
 			printf("    Dei %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_CCM_TX_DEI]));
 			printf("    Dmac %s\n", rta_getattr_mac(infotb[IFLA_BRIDGE_CFM_CC_CCM_TX_DMAC]));
 			printf("    sequence %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_CCM_TX_SEQ_NO_UPDATE]));
 			printf("    period %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_CCM_TX_PERIOD]));
 			printf("    iftlv %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_CCM_TX_IF_TLV]));
-			printf("    iftlv-value %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_CCM_TX_IF_TLV_VALUE]));
+			printf("    iftlv-value %u\n", rta_getattr_u8(infotb[IFLA_BRIDGE_CFM_CC_CCM_TX_IF_TLV_VALUE]));
 			printf("    porttlv %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_CCM_TX_PORT_TLV]));
-			printf("    porttlv-value %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_CCM_TX_PORT_TLV_VALUE]));
+			printf("    porttlv-value %u\n", rta_getattr_u8(infotb[IFLA_BRIDGE_CFM_CC_CCM_TX_PORT_TLV_VALUE]));
 		}
 		printf("\n");
 	}
@@ -362,12 +362,12 @@ static int cfm_mep_status_show(struct nlmsghdr *n, void *arg)
 		printf("    Peer-mep %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_PEER_STATUS_PEER_MEPID]));
 		printf("        Unicast_mac %s\n", rta_getattr_mac(infotb[IFLA_BRIDGE_CFM_CC_PEER_STATUS_UNICAST_MAC]));
 		printf("        Interval unexp %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_PEER_STATUS_INTERVAL_UNEXP]));
-		printf("        Priority unexp  %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_PEER_STATUS_PRIORITY_UNEXP]));
+		printf("        Priority unexp  %u\n", rta_getattr_u8(infotb[IFLA_BRIDGE_CFM_CC_PEER_STATUS_PRIORITY_UNEXP]));
 		printf("        CCM defect %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_PEER_STATUS_CCM_DEFECT]));
 		printf("        Rdi %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_PEER_STATUS_RDI]));
 		printf("        Rx Port %s\n", if_indextoname(rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_PEER_STATUS_RX_IFINDEX]), ifname));
-		printf("        Port tlv %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_PEER_STATUS_PORT_TLV_VALUE]));
-		printf("        If tlv %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_PEER_STATUS_IF_TLV_VALUE]));
+		printf("        Port tlv %u\n", rta_getattr_u8(infotb[IFLA_BRIDGE_CFM_CC_PEER_STATUS_PORT_TLV_VALUE]));
+		printf("        If tlv %u\n", rta_getattr_u8(infotb[IFLA_BRIDGE_CFM_CC_PEER_STATUS_IF_TLV_VALUE]));
 		printf("        CCM seen %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_PEER_STATUS_SEEN]));
 		printf("        Tlv seen %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_PEER_STATUS_TLV_SEEN]));
 		printf("        Seq unexp seen %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_PEER_STATUS_SEQ_UNEXP_SEEN]));
@@ -506,7 +506,7 @@ int cfm_offload_mep_cnt_clear(uint32_t br_ifindex, uint32_t instance)
 }
 
 int cfm_offload_cc_config(uint32_t br_ifindex, uint32_t instance, uint32_t enable,
-			  uint32_t interval, uint32_t priority, struct maid_data *maid)
+			  uint32_t interval, uint8_t priority, struct maid_data *maid)
 {
 	struct rtattr *afspec, *af, *af_sub;
 	struct request req = { 0 };
@@ -520,7 +520,7 @@ int cfm_offload_cc_config(uint32_t br_ifindex, uint32_t instance, uint32_t enabl
 		  enable);
 	addattr32(&req.n, sizeof(req), IFLA_BRIDGE_CFM_CC_CONFIG_EXP_INTERVAL,
 		  interval);
-	addattr32(&req.n, sizeof(req), IFLA_BRIDGE_CFM_CC_CONFIG_EXP_PRIORITY,
+	addattr8(&req.n, sizeof(req), IFLA_BRIDGE_CFM_CC_CONFIG_EXP_PRIORITY,
 		  priority);
 	addattrmaid(&req.n, sizeof(req), IFLA_BRIDGE_CFM_CC_CONFIG_EXP_MAID,
 		    maid);
@@ -563,9 +563,9 @@ int cfm_offload_cc_rdi(uint32_t br_ifindex, uint32_t instance, uint32_t rdi)
 	return cfm_nl_terminate(&req, afspec, af, af_sub);
 }
 
-int cfm_offload_cc_ccm_tx(uint32_t br_ifindex, uint32_t instance, uint32_t priority, uint32_t dei,
+int cfm_offload_cc_ccm_tx(uint32_t br_ifindex, uint32_t instance, uint8_t priority, uint32_t dei,
 			  struct mac_addr *dmac, uint32_t sequence, uint32_t period, uint32_t iftlv,
-			  uint32_t iftlv_value, uint32_t porttlv, uint32_t porttlv_value)
+			  uint8_t iftlv_value, uint32_t porttlv, uint8_t porttlv_value)
 {
 	struct rtattr *afspec, *af, *af_sub;
 	struct request req = { 0 };
@@ -575,7 +575,7 @@ int cfm_offload_cc_ccm_tx(uint32_t br_ifindex, uint32_t instance, uint32_t prior
 
 	addattr32(&req.n, sizeof(req), IFLA_BRIDGE_CFM_CC_CCM_TX_INSTANCE,
 		  instance);
-	addattr32(&req.n, sizeof(req), IFLA_BRIDGE_CFM_CC_CCM_TX_PRIORITY,
+	addattr8(&req.n, sizeof(req), IFLA_BRIDGE_CFM_CC_CCM_TX_PRIORITY,
 		  priority);
 	addattr32(&req.n, sizeof(req), IFLA_BRIDGE_CFM_CC_CCM_TX_DEI,
 		  dei);
@@ -587,11 +587,11 @@ int cfm_offload_cc_ccm_tx(uint32_t br_ifindex, uint32_t instance, uint32_t prior
 		  period);
 	addattr32(&req.n, sizeof(req), IFLA_BRIDGE_CFM_CC_CCM_TX_IF_TLV,
 		  iftlv);
-	addattr32(&req.n, sizeof(req), IFLA_BRIDGE_CFM_CC_CCM_TX_IF_TLV_VALUE,
+	addattr8(&req.n, sizeof(req), IFLA_BRIDGE_CFM_CC_CCM_TX_IF_TLV_VALUE,
 		  iftlv_value);
 	addattr32(&req.n, sizeof(req), IFLA_BRIDGE_CFM_CC_CCM_TX_PORT_TLV,
 		  porttlv);
-	addattr32(&req.n, sizeof(req), IFLA_BRIDGE_CFM_CC_CCM_TX_PORT_TLV_VALUE,
+	addattr8(&req.n, sizeof(req), IFLA_BRIDGE_CFM_CC_CCM_TX_PORT_TLV_VALUE,
 		  porttlv_value);
 
 	return cfm_nl_terminate(&req, afspec, af, af_sub);

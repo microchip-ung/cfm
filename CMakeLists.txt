@@ -55,5 +55,9 @@ add_executable(cfm main.c offload.c libnetlink.c)
 target_link_libraries(cfm ${LibNL_LIBRARY} ${LibNL_GENL_LIBRARY}
     ${LibEV_LIBRARY} ${LibMNL_LIBRARY})
 
-install(TARGETS cfm RUNTIME DESTINATION bin)
+add_executable(cfm_server cfm_server.c libnetlink.c)
+target_link_libraries(cfm_server ${LibNL_LIBRARY} ${LibNL_GENL_LIBRARY}
+    ${LibEV_LIBRARY} ${LibMNL_LIBRARY})
+
+install(TARGETS cfm cfm_server RUNTIME DESTINATION bin)
 

@@ -23,42 +23,6 @@ static void incomplete_command(void)
 #define NEXT_ARG() do { argv++; if (--argc <= 0) incomplete_command(); } while(0)
 #define COUNT_OF(x) ((sizeof(x)/sizeof(0[x])) / ((size_t)(!(sizeof(x) % sizeof(0[x])))))
 
-static struct rtnl_handle rth;
-static ev_io netlink_watcher;
-
-static int netlink_listen(struct rtnl_ctrl_data *who, struct nlmsghdr *n,
-			  void *arg)
-{
-	return 0;
-}
-
-static void netlink_rcv(EV_P_ ev_io *w, int revents)
-{
-	rtnl_listen(&rth, netlink_listen, stdout);
-}
-
-static int netlink_init(void)
-{
-	int err;
-
-	err = rtnl_open(&rth, RTMGRP_LINK);
-	if (err)
-		return err;
-
-	fcntl(rth.fd, F_SETFL, O_NONBLOCK);
-
-	ev_io_init(&netlink_watcher, netlink_rcv, rth.fd, EV_READ);
-	ev_io_start(EV_DEFAULT, &netlink_watcher);
-
-	return 0;
-}
-
-static void netlink_uninit(void)
-{
-	ev_io_stop(EV_DEFAULT, &netlink_watcher);
-	rtnl_close(&rth);
-}
-
 static enum br_cfm_domain domain_int(char *arg)
 {
 	if (strcmp(arg, "port") == 0)
@@ -610,11 +574,6 @@ int main (int argc, char *const *argv)
 		{0}
 	};
 
-	if (netlink_init()) {
-		printf("netlink init failed!\n");
-		return -1;
-	}
-
 	cfm_offload_init();
 
 	while (EOF != (f = getopt_long(argc, argv, "h", options, NULL))) {
@@ -638,8 +597,6 @@ int main (int argc, char *const *argv)
 		return 1;
 
 	ret = cmd->func(argc, argv);
-
-	netlink_uninit();
 
 	return ret;
 }
