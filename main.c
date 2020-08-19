@@ -98,7 +98,6 @@ static struct maid_data maid_array(char *arg)
 static int cmd_mep_create(int argc, char *const *argv)
 {
 	uint32_t br_ifindex = 0, port_ifindex = 0, instance = 0, domain = 0, direction = 0;
-	uint16_t vid = 0;
 
 	/* skip the command */
 	argv++;
@@ -117,9 +116,6 @@ static int cmd_mep_create(int argc, char *const *argv)
 		} else if (strcmp(*argv, "direction") == 0) {
 			NEXT_ARG();
 			direction = direction_int(*argv);
-		} else if (strcmp(*argv, "vid") == 0) {
-			NEXT_ARG();
-			vid = atoi(*argv);
 		} else if (strcmp(*argv, "port") == 0) {
 			NEXT_ARG();
 			port_ifindex = if_nametoindex(*argv);
@@ -134,7 +130,7 @@ static int cmd_mep_create(int argc, char *const *argv)
 	if (domain == -1 || direction == -1)
 		return -1;
 
-	return cfm_offload_mep_create(br_ifindex, instance, domain, direction, vid, port_ifindex);
+	return cfm_offload_mep_create(br_ifindex, instance, domain, direction, port_ifindex);
 }
 
 static int cmd_mep_delete(int argc, char *const *argv)
@@ -166,7 +162,6 @@ static int cmd_mep_delete(int argc, char *const *argv)
 static int cmd_mep_config(int argc, char *const *argv)
 {
 	uint32_t br_ifindex = 0, level = 0, mepid = 0, instance = 0;
-	uint16_t vid = 0;
 	struct mac_addr mac;
 
 	memset(&mac, 0, sizeof(mac));
@@ -193,9 +188,6 @@ static int cmd_mep_config(int argc, char *const *argv)
 		} else if (strcmp(*argv, "mepid") == 0) {
 			NEXT_ARG();
 			mepid = atoi(*argv);
-		} else if (strcmp(*argv, "vid") == 0) {
-			NEXT_ARG();
-			vid = atoi(*argv);
 		}
 
 		argc--; argv++;
@@ -204,38 +196,12 @@ static int cmd_mep_config(int argc, char *const *argv)
 	if (br_ifindex == 0 || instance == 0)
 		return -1;
 
-	return cfm_offload_mep_config(br_ifindex, instance, &mac, level, mepid, vid);
-}
-
-static int cmd_mep_cnt_clear(int argc, char *const *argv)
-{
-	uint32_t br_ifindex = 0, instance = 0;
-
-	/* skip the command */
-	argv++;
-	argc -= 1;
-
-	while (argc > 0) {
-		if (strcmp(*argv, "bridge") == 0) {
-			NEXT_ARG();
-			br_ifindex = if_nametoindex(*argv);
-		} else if (strcmp(*argv, "instance") == 0) {
-			NEXT_ARG();
-			instance = atoi(*argv);
-		}
-
-		argc--; argv++;
-	}
-
-	if (br_ifindex == 0 || instance == 0)
-		return -1;
-
-	return cfm_offload_mep_cnt_clear(br_ifindex, instance);
+	return cfm_offload_mep_config(br_ifindex, instance, &mac, level, mepid);
 }
 
 static int cmd_cc_config(int argc, char *const *argv)
 {
-	uint32_t br_ifindex = 0, enable = 0, interval = 0, priority = 0, instance = 0;
+	uint32_t br_ifindex = 0, enable = 0, interval = 0, instance = 0;
 	struct maid_data maid;
 
 	memset(&maid, 0, sizeof(maid));
@@ -257,9 +223,6 @@ static int cmd_cc_config(int argc, char *const *argv)
 		} else if (strcmp(*argv, "interval") == 0) {
 			NEXT_ARG();
 			interval = interval_int(*argv);
-		} else if (strcmp(*argv, "priority") == 0) {
-			NEXT_ARG();
-			priority = atoi(*argv);
 		} else if (strcmp(*argv, "maid-name") == 0) {
 			NEXT_ARG();
 			maid = maid_array(*argv);
@@ -274,7 +237,7 @@ static int cmd_cc_config(int argc, char *const *argv)
 	if (interval == -1)
 		return -1;
 
-	return cfm_offload_cc_config(br_ifindex, instance, enable, interval, priority, &maid);
+	return cfm_offload_cc_config(br_ifindex, instance, enable, interval, &maid);
 }
 
 static int cmd_cc_rdi(int argc, char *const *argv)
@@ -340,7 +303,7 @@ static int cmd_cc_peer(int argc, char *const *argv)
 
 static int cmd_cc_ccm_tx(int argc, char *const *argv)
 {
-	uint32_t br_ifindex = 0, priority = 0, instance = 0, dei = 0, sequence = 0,
+	uint32_t br_ifindex = 0, instance = 0, sequence = 0,
 		 period = 0, iftlv = 0, iftlv_value = 0, porttlv = 0, porttlv_value = 0;
 	struct mac_addr dmac;
 
@@ -357,12 +320,6 @@ static int cmd_cc_ccm_tx(int argc, char *const *argv)
 		} else if (strcmp(*argv, "instance") == 0) {
 			NEXT_ARG();
 			instance = atoi(*argv);
-		} else if (strcmp(*argv, "priority") == 0) {
-			NEXT_ARG();
-			priority = atoi(*argv);
-		} else if (strcmp(*argv, "dei") == 0) {
-			NEXT_ARG();
-			dei = atoi(*argv);
 		} else if (strcmp(*argv, "dmac") == 0) {
 			NEXT_ARG();
 			if (strlen(*argv) != 17)	/* Must be 17 characters to be XX-XX-XX-XX-XX-XX format */
@@ -393,34 +350,8 @@ static int cmd_cc_ccm_tx(int argc, char *const *argv)
 	if (br_ifindex == 0 || instance == 0)
 		return -1;
 
-	return cfm_offload_cc_ccm_tx(br_ifindex, instance, priority, dei, &dmac, sequence,
+	return cfm_offload_cc_ccm_tx(br_ifindex, instance, &dmac, sequence,
 				     period, iftlv, iftlv_value, porttlv, porttlv_value);
-}
-
-static int cmd_cc_cnt_clear(int argc, char *const *argv)
-{
-	uint32_t br_ifindex = 0, instance = 0;
-
-	/* skip the command */
-	argv++;
-	argc -= 1;
-
-	while (argc > 0) {
-		if (strcmp(*argv, "bridge") == 0) {
-			NEXT_ARG();
-			br_ifindex = if_nametoindex(*argv);
-		} else if (strcmp(*argv, "instance") == 0) {
-			NEXT_ARG();
-			instance = atoi(*argv);
-		}
-
-		argc--; argv++;
-	}
-
-	if (br_ifindex == 0 || instance == 0)
-		return -1;
-
-	return cfm_offload_cc_cnt_clear(br_ifindex, instance);
 }
 
 static int cmd_mep_status_show(int argc, char *const *argv)
@@ -481,29 +412,25 @@ static const struct command commands[] =
 {
 	{"mep-create", cmd_mep_create,
 	 "bridge <bridge> instance <instance> domain <domain> direction <direction> "
-	 "vid <vid> port <port>", "Create MEP instance"},
+	 "port <port>", "Create MEP instance"},
 	{"mep-delete", cmd_mep_delete,
 	 "bridge <bridge> instance <instance>", "Delete MEP instance"},
 	{"mep-config", cmd_mep_config,
-	 "bridge <bridge> instance <instance> mac <mac> level <level> mepid <mepid> "
-	 "vid <vid>", "Configure MEP instance"},
+	 "bridge <bridge> instance <instance> mac <mac> level <level> mepid <mepid> ",
+	 "Configure MEP instance"},
 	{"cc-config", cmd_cc_config,
 	 "bridge <bridge> instance <instance> enable <enable> interval <interval> "
-	 "priority <priority> maid-name <name>", "Configure CC function"},
+	 "maid-name <name>", "Configure CC function"},
 	{"cc-peer", cmd_cc_peer,
 	 "bridge <bridge> instance <instance> remove <remove> mepid <mepid> ",
 	 "Configure CC Peer-MEP ID function"},
 	{"cc-rdi", cmd_cc_rdi,
 	 "bridge <bridge> instance <instance> rdi <rdi>", "Configure CC RDI insertion"},
 	{"cc-ccm-tx", cmd_cc_ccm_tx,
-	 "bridge <bridge> instance <instance> priority <priority> dei <dei> dmac <dmac> "
+	 "bridge <bridge> instance <instance> dmac <dmac> "
 	 "sequence <sequence> period <period> iftlv <iftlv> iftlv-value "
 	 "<iftlv-value> porttlv <porttlv> porttlv-value <porttlv-value>",
 	 "Configure CC CCM TX"},
-	{"mep-cnt-clear", cmd_mep_cnt_clear,
-	 "bridge <bridge> instance <instance>", "Clear MEP counters"},
-	{"cc-cnt-clear", cmd_cc_cnt_clear,
-	 "bridge <bridge> instance <instance>", "Clear MEP counters"},
 	{"mep-status-show", cmd_mep_status_show,
 	 "bridge <bridge>", "Show MEP instances status"},
 	{"mep-config-show", cmd_mep_config_show,

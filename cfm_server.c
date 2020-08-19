@@ -110,7 +110,7 @@ static int netlink_listen(struct rtnl_ctrl_data *who, struct nlmsghdr *n,
 
 		if (instance != rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_PEER_STATUS_INSTANCE])) {
 			instance = rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_PEER_STATUS_INSTANCE]);
-			printf("Instance %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_STATUS_INSTANCE]));
+			printf("Instance %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_PEER_STATUS_INSTANCE]));
 		}
 		printf("    Peer-mep %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_PEER_STATUS_PEER_MEPID]));
 		printf("        CCM defect %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_PEER_STATUS_CCM_DEFECT]));

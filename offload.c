@@ -154,7 +154,6 @@ static int cfm_mep_config_show(struct nlmsghdr *n, void *arg)
 			printf("Instance %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_MEP_CREATE_INSTANCE]));
 			printf("    Domain %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_MEP_CREATE_DOMAIN]));
 			printf("    Direction %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_MEP_CREATE_DIRECTION]));
-			printf("    Vid %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_MEP_CREATE_VID]));
 			printf("    Port %s\n", if_indextoname(rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_MEP_CREATE_IFINDEX]), ifname));
 		}
 		printf("\n");
@@ -175,7 +174,6 @@ static int cfm_mep_config_show(struct nlmsghdr *n, void *arg)
 			printf("    Unicast_mac %s\n", rta_getattr_mac(infotb[IFLA_BRIDGE_CFM_MEP_CONFIG_UNICAST_MAC]));
 			printf("    Mdlevel %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_MEP_CONFIG_MDLEVEL]));
 			printf("    Mepid %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_MEP_CONFIG_MEPID]));
-			printf("    Vid %u\n", rta_getattr_u16(infotb[IFLA_BRIDGE_CFM_MEP_CONFIG_VID]));
 		}
 		printf("\n");
 	}
@@ -194,7 +192,6 @@ static int cfm_mep_config_show(struct nlmsghdr *n, void *arg)
 			printf("Instance %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_CONFIG_INSTANCE]));
 			printf("    Enable %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_CONFIG_ENABLE]));
 			printf("    Interval %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_CONFIG_EXP_INTERVAL]));
-			printf("    Priority %u\n", rta_getattr_u8(infotb[IFLA_BRIDGE_CFM_CC_CONFIG_EXP_PRIORITY]));
 			printf("    Maid-name %s\n",
 				rta_getattr_maid(infotb[IFLA_BRIDGE_CFM_CC_CONFIG_EXP_MAID]));
 		}
@@ -236,8 +233,6 @@ static int cfm_mep_config_show(struct nlmsghdr *n, void *arg)
 
 		if (infotb[IFLA_BRIDGE_CFM_CC_CCM_TX_INSTANCE]) {
 			printf("Instance %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_CCM_TX_INSTANCE]));
-			printf("    Priority %u\n", rta_getattr_u8(infotb[IFLA_BRIDGE_CFM_CC_CCM_TX_PRIORITY]));
-			printf("    Dei %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_CCM_TX_DEI]));
 			printf("    Dmac %s\n", rta_getattr_mac(infotb[IFLA_BRIDGE_CFM_CC_CCM_TX_DMAC]));
 			printf("    sequence %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_CCM_TX_SEQ_NO_UPDATE]));
 			printf("    period %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_CCM_TX_PERIOD]));
@@ -315,30 +310,8 @@ static int cfm_mep_status_show(struct nlmsghdr *n, void *arg)
 
 		printf("Instance %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_MEP_STATUS_INSTANCE]));
 		printf("    Opcode unexp seen %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_MEP_STATUS_OPCODE_UNEXP_SEEN]));
-		printf("    Opcode unexp seen %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_MEP_STATUS_DMAC_UNEXP_SEEN]));
-		printf("    Tx level low seen %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_MEP_STATUS_TX_LEVEL_LOW_SEEN]));
 		printf("    Version unexp seen %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_MEP_STATUS_VERSION_UNEXP_SEEN]));
 		printf("    Rx level low seen %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_MEP_STATUS_RX_LEVEL_LOW_SEEN]));
-		printf("\n");
-	}
-
-	list = aftb[IFLA_BRIDGE_CFM];
-	rem = RTA_PAYLOAD(list);
-
-	printf("CFM CC status:\n");
-	for (i = RTA_DATA(list); RTA_OK(i, rem); i = RTA_NEXT(i, rem)) {
-		if (i->rta_type != IFLA_BRIDGE_CFM_CC_STATUS_INFO)
-			continue;
-
-		parse_rtattr_nested(infotb, IFLA_BRIDGE_CFM_CC_STATUS_MAX, i);
-		if (!infotb[IFLA_BRIDGE_CFM_CC_STATUS_INSTANCE])
-			return 0;
-
-		printf("Instance %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_STATUS_INSTANCE]));
-		printf("    Zero interval seen %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_STATUS_ZERO_INTERVAL]));
-		printf("    Mdlevel unexp seen %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_STATUS_MDLEVEL_UNEXP]));
-		printf("    Maid unexp  seen %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_STATUS_MAID_UNEXP]));
-		printf("    Mepid unexp seen %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_STATUS_MEPID_UNEXP]));
 		printf("\n");
 	}
 
@@ -357,15 +330,11 @@ static int cfm_mep_status_show(struct nlmsghdr *n, void *arg)
 
 		if (instance != rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_PEER_STATUS_INSTANCE])) {
 			instance = rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_PEER_STATUS_INSTANCE]);
-			printf("Instance %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_STATUS_INSTANCE]));
+			printf("Instance %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_PEER_STATUS_INSTANCE]));
 		}
 		printf("    Peer-mep %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_PEER_STATUS_PEER_MEPID]));
-		printf("        Unicast_mac %s\n", rta_getattr_mac(infotb[IFLA_BRIDGE_CFM_CC_PEER_STATUS_UNICAST_MAC]));
-		printf("        Interval unexp %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_PEER_STATUS_INTERVAL_UNEXP]));
-		printf("        Priority unexp  %u\n", rta_getattr_u8(infotb[IFLA_BRIDGE_CFM_CC_PEER_STATUS_PRIORITY_UNEXP]));
 		printf("        CCM defect %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_PEER_STATUS_CCM_DEFECT]));
 		printf("        Rdi %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_PEER_STATUS_RDI]));
-		printf("        Rx Port %s\n", if_indextoname(rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_PEER_STATUS_RX_IFINDEX]), ifname));
 		printf("        Port tlv %u\n", rta_getattr_u8(infotb[IFLA_BRIDGE_CFM_CC_PEER_STATUS_PORT_TLV_VALUE]));
 		printf("        If tlv %u\n", rta_getattr_u8(infotb[IFLA_BRIDGE_CFM_CC_PEER_STATUS_IF_TLV_VALUE]));
 		printf("        CCM seen %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_PEER_STATUS_SEEN]));
@@ -376,43 +345,6 @@ static int cfm_mep_status_show(struct nlmsghdr *n, void *arg)
 
 	list = aftb[IFLA_BRIDGE_CFM];
 	rem = RTA_PAYLOAD(list);
-
-	printf("CFM MEP Counters:\n");
-	for (i = RTA_DATA(list); RTA_OK(i, rem); i = RTA_NEXT(i, rem)) {
-		if (i->rta_type != IFLA_BRIDGE_CFM_MEP_COUNTERS_INFO)
-			continue;
-
-		parse_rtattr_nested(infotb, IFLA_BRIDGE_CFM_MEP_COUNTERS_MAX, i);
-		if (!infotb[IFLA_BRIDGE_CFM_MEP_COUNTERS_INSTANCE])
-			return 0;
-
-		printf("Instance %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_MEP_COUNTERS_INSTANCE]));
-		printf("    Rx %llu\n", rta_getattr_u64(infotb[IFLA_BRIDGE_CFM_MEP_COUNTERS_RX_COUNTER]));
-		printf("    Tx %llu\n", rta_getattr_u64(infotb[IFLA_BRIDGE_CFM_MEP_COUNTERS_TX_COUNTER]));
-		printf("    Rx discard %llu\n", rta_getattr_u64(infotb[IFLA_BRIDGE_CFM_MEP_COUNTERS_RX_DISCARD_COUNTER]));
-		printf("    Tx discard %llu\n", rta_getattr_u64(infotb[IFLA_BRIDGE_CFM_MEP_COUNTERS_TX_DISCARD_COUNTER]));
-		printf("\n");
-	}
-
-	list = aftb[IFLA_BRIDGE_CFM];
-	rem = RTA_PAYLOAD(list);
-
-	printf("CFM CC Counters:\n");
-	for (i = RTA_DATA(list); RTA_OK(i, rem); i = RTA_NEXT(i, rem)) {
-		if (i->rta_type != IFLA_BRIDGE_CFM_CC_COUNTERS_INFO)
-			continue;
-
-		parse_rtattr_nested(infotb, IFLA_BRIDGE_CFM_CC_COUNTERS_MAX, i);
-		if (!infotb[IFLA_BRIDGE_CFM_CC_COUNTERS_INSTANCE])
-			return 0;
-
-		printf("Instance %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_COUNTERS_INSTANCE]));
-		printf("    Rx valid %llu\n", rta_getattr_u64(infotb[IFLA_BRIDGE_CFM_CC_COUNTERS_RX_VALID_COUNTER]));
-		printf("    Rx invalid %llu\n", rta_getattr_u64(infotb[IFLA_BRIDGE_CFM_CC_COUNTERS_RX_INVALID_COUNTER]));
-		printf("    Rx OO %llu\n", rta_getattr_u64(infotb[IFLA_BRIDGE_CFM_CC_COUNTERS_RX_OO_COUNTER]));
-		printf("    Tx %llu\n", rta_getattr_u64(infotb[IFLA_BRIDGE_CFM_CC_COUNTERS_TX_COUNTER]));
-		printf("\n");
-	}
 
 	return 0;
 }
@@ -432,7 +364,7 @@ void cfm_offload_uninit(void)
 	rtnl_close(&rth);
 }
 
-int cfm_offload_mep_create(uint32_t br_ifindex, uint32_t instance, uint32_t domain, uint32_t direction, uint16_t vid, uint32_t ifindex)
+int cfm_offload_mep_create(uint32_t br_ifindex, uint32_t instance, uint32_t domain, uint32_t direction, uint32_t ifindex)
 {
 	struct rtattr *afspec, *af, *af_sub;
 	struct request req = { 0 };
@@ -446,8 +378,6 @@ int cfm_offload_mep_create(uint32_t br_ifindex, uint32_t instance, uint32_t doma
 		  domain);
 	addattr32(&req.n, sizeof(req), IFLA_BRIDGE_CFM_MEP_CREATE_DIRECTION,
 		  direction);
-	addattr16(&req.n, sizeof(req), IFLA_BRIDGE_CFM_MEP_CREATE_VID,
-		  vid);
 	addattr32(&req.n, sizeof(req), IFLA_BRIDGE_CFM_MEP_CREATE_IFINDEX,
 		  ifindex);
 
@@ -469,7 +399,7 @@ int cfm_offload_mep_delete(uint32_t br_ifindex, uint32_t instance)
 }
 
 int cfm_offload_mep_config(uint32_t br_ifindex, uint32_t instance, struct mac_addr *mac,
-			   uint32_t level, uint32_t mepid, uint16_t vid)
+			   uint32_t level, uint32_t mepid)
 {
 	struct rtattr *afspec, *af, *af_sub;
 	struct request req = { 0 };
@@ -485,28 +415,12 @@ int cfm_offload_mep_config(uint32_t br_ifindex, uint32_t instance, struct mac_ad
 		  level);
 	addattr32(&req.n, sizeof(req), IFLA_BRIDGE_CFM_MEP_CONFIG_MEPID,
 		  mepid);
-	addattr16(&req.n, sizeof(req), IFLA_BRIDGE_CFM_MEP_CONFIG_VID,
-		  vid);
-
-	return cfm_nl_terminate(&req, afspec, af, af_sub);
-}
-
-int cfm_offload_mep_cnt_clear(uint32_t br_ifindex, uint32_t instance)
-{
-	struct rtattr *afspec, *af, *af_sub;
-	struct request req = { 0 };
-
-	cfm_nl_bridge_prepare(br_ifindex, RTM_SETLINK, &req, &afspec,
-			      &af, &af_sub, IFLA_BRIDGE_CFM_MEP_COUNTERS_CLEAR);
-
-	addattr32(&req.n, sizeof(req), IFLA_BRIDGE_CFM_MEP_COUNTERS_CLEAR_INSTANCE,
-		  instance);
 
 	return cfm_nl_terminate(&req, afspec, af, af_sub);
 }
 
 int cfm_offload_cc_config(uint32_t br_ifindex, uint32_t instance, uint32_t enable,
-			  uint32_t interval, uint8_t priority, struct maid_data *maid)
+			  uint32_t interval, struct maid_data *maid)
 {
 	struct rtattr *afspec, *af, *af_sub;
 	struct request req = { 0 };
@@ -520,8 +434,6 @@ int cfm_offload_cc_config(uint32_t br_ifindex, uint32_t instance, uint32_t enabl
 		  enable);
 	addattr32(&req.n, sizeof(req), IFLA_BRIDGE_CFM_CC_CONFIG_EXP_INTERVAL,
 		  interval);
-	addattr8(&req.n, sizeof(req), IFLA_BRIDGE_CFM_CC_CONFIG_EXP_PRIORITY,
-		  priority);
 	addattrmaid(&req.n, sizeof(req), IFLA_BRIDGE_CFM_CC_CONFIG_EXP_MAID,
 		    maid);
 
@@ -563,7 +475,7 @@ int cfm_offload_cc_rdi(uint32_t br_ifindex, uint32_t instance, uint32_t rdi)
 	return cfm_nl_terminate(&req, afspec, af, af_sub);
 }
 
-int cfm_offload_cc_ccm_tx(uint32_t br_ifindex, uint32_t instance, uint8_t priority, uint32_t dei,
+int cfm_offload_cc_ccm_tx(uint32_t br_ifindex, uint32_t instance,
 			  struct mac_addr *dmac, uint32_t sequence, uint32_t period, uint32_t iftlv,
 			  uint8_t iftlv_value, uint32_t porttlv, uint8_t porttlv_value)
 {
@@ -575,10 +487,6 @@ int cfm_offload_cc_ccm_tx(uint32_t br_ifindex, uint32_t instance, uint8_t priori
 
 	addattr32(&req.n, sizeof(req), IFLA_BRIDGE_CFM_CC_CCM_TX_INSTANCE,
 		  instance);
-	addattr8(&req.n, sizeof(req), IFLA_BRIDGE_CFM_CC_CCM_TX_PRIORITY,
-		  priority);
-	addattr32(&req.n, sizeof(req), IFLA_BRIDGE_CFM_CC_CCM_TX_DEI,
-		  dei);
 	addattrmac(&req.n, sizeof(req), IFLA_BRIDGE_CFM_CC_CCM_TX_DMAC,
 		   dmac);
 	addattr32(&req.n, sizeof(req), IFLA_BRIDGE_CFM_CC_CCM_TX_SEQ_NO_UPDATE,
@@ -593,20 +501,6 @@ int cfm_offload_cc_ccm_tx(uint32_t br_ifindex, uint32_t instance, uint8_t priori
 		  porttlv);
 	addattr8(&req.n, sizeof(req), IFLA_BRIDGE_CFM_CC_CCM_TX_PORT_TLV_VALUE,
 		  porttlv_value);
-
-	return cfm_nl_terminate(&req, afspec, af, af_sub);
-}
-
-int cfm_offload_cc_cnt_clear(uint32_t br_ifindex, uint32_t instance)
-{
-	struct rtattr *afspec, *af, *af_sub;
-	struct request req = { 0 };
-
-	cfm_nl_bridge_prepare(br_ifindex, RTM_SETLINK, &req, &afspec,
-			      &af, &af_sub, IFLA_BRIDGE_CFM_CC_COUNTERS_CLEAR);
-
-	addattr32(&req.n, sizeof(req), IFLA_BRIDGE_CFM_CC_COUNTERS_CLEAR_INSTANCE,
-		  instance);
 
 	return cfm_nl_terminate(&req, afspec, af, af_sub);
 }
