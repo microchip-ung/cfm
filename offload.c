@@ -96,6 +96,38 @@ static char *rta_getattr_maid(const struct rtattr *rta)
 	return buf_ret;
 }
 
+static char *int_domain(uint32_t value)
+{
+	switch (value) {
+    case BR_CFM_PORT: return "port";
+    case BR_CFM_VLAN: return "vlan";
+    }
+	return "undef";
+}
+
+static char *int_direction(uint32_t value)
+{
+	switch (value) {
+    case BR_CFM_MEP_DIRECTION_DOWN: return "down";
+    case BR_CFM_MEP_DIRECTION_UP: return "up";
+    }
+	return "undef";
+}
+
+static char *int_interval(uint32_t value)
+{
+	switch (value) {
+    case BR_CFM_CCM_INTERVAL_3_3_MS: return "3ms3";
+    case BR_CFM_CCM_INTERVAL_10_MS: return "10ms";
+    case BR_CFM_CCM_INTERVAL_100_MS: return "100ms";
+    case BR_CFM_CCM_INTERVAL_1_SEC: return "1s";
+    case BR_CFM_CCM_INTERVAL_10_SEC: return "10s";
+    case BR_CFM_CCM_INTERVAL_1_MIN: return "1m";
+    case BR_CFM_CCM_INTERVAL_10_MIN: return "10m";
+    }
+	return "undef";
+}
+
 int addattrmac(struct nlmsghdr *n, int maxlen, int type, struct mac_addr *mac)
 {
 //printf("addattrmac sizeof(*mac) %lu  rta_len %lu  mac %02X-%02X-%02X-%02X-%02X-%02X\n", sizeof(*mac), RTA_LENGTH(sizeof(mac->addr)), mac->addr[0], mac->addr[1], mac->addr[2], mac->addr[3], mac->addr[4], mac->addr[5]);
@@ -152,8 +184,8 @@ static int cfm_mep_config_show(struct nlmsghdr *n, void *arg)
 
 		if (infotb[IFLA_BRIDGE_CFM_MEP_CREATE_INSTANCE]) {
 			printf("Instance %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_MEP_CREATE_INSTANCE]));
-			printf("    Domain %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_MEP_CREATE_DOMAIN]));
-			printf("    Direction %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_MEP_CREATE_DIRECTION]));
+			printf("    Domain %s\n", int_domain(rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_MEP_CREATE_DOMAIN])));
+			printf("    Direction %s\n", int_direction(rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_MEP_CREATE_DIRECTION])));
 			printf("    Port %s\n", if_indextoname(rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_MEP_CREATE_IFINDEX]), ifname));
 		}
 		printf("\n");
@@ -191,7 +223,7 @@ static int cfm_mep_config_show(struct nlmsghdr *n, void *arg)
 		if (infotb[IFLA_BRIDGE_CFM_CC_CONFIG_INSTANCE]) {
 			printf("Instance %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_CONFIG_INSTANCE]));
 			printf("    Enable %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_CONFIG_ENABLE]));
-			printf("    Interval %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_CONFIG_EXP_INTERVAL]));
+			printf("    Interval %s\n", int_interval(rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_CONFIG_EXP_INTERVAL])));
 			printf("    Maid-name %s\n",
 				rta_getattr_maid(infotb[IFLA_BRIDGE_CFM_CC_CONFIG_EXP_MAID]));
 		}
