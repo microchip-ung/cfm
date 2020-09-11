@@ -164,11 +164,10 @@ static int cfm_mep_config_show(struct nlmsghdr *n, void *arg)
 		return 0;
 
 	parse_rtattr_flags(tb, IFLA_MAX, IFLA_RTA(ifi), len, NLA_F_NESTED);
-
 	if (!tb[IFLA_AF_SPEC])
 		return 0;
 
-	parse_rtattr_nested(aftb, IFLA_BRIDGE_MAX, tb[IFLA_AF_SPEC]);
+	parse_rtattr_flags(aftb, IFLA_BRIDGE_MAX, RTA_DATA(tb[IFLA_AF_SPEC]), RTA_PAYLOAD(tb[IFLA_AF_SPEC]), NLA_F_NESTED);
 	if (!aftb[IFLA_BRIDGE_CFM])
 		return 0;
 
@@ -177,10 +176,10 @@ static int cfm_mep_config_show(struct nlmsghdr *n, void *arg)
 
 	printf("CFM MEP create:\n");
 	for (i = RTA_DATA(list); RTA_OK(i, rem); i = RTA_NEXT(i, rem)) {
-		if (i->rta_type != IFLA_BRIDGE_CFM_MEP_CREATE_INFO)
+		if (i->rta_type != (IFLA_BRIDGE_CFM_MEP_CREATE_INFO | NLA_F_NESTED))
 			continue;
 
-		parse_rtattr_nested(infotb, IFLA_BRIDGE_CFM_MEP_CREATE_MAX, i);
+		parse_rtattr_flags(infotb, IFLA_BRIDGE_CFM_MEP_CREATE_MAX, RTA_DATA(i), RTA_PAYLOAD(i), NLA_F_NESTED);
 
 		if (infotb[IFLA_BRIDGE_CFM_MEP_CREATE_INSTANCE]) {
 			printf("Instance %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_MEP_CREATE_INSTANCE]));
@@ -196,10 +195,10 @@ static int cfm_mep_config_show(struct nlmsghdr *n, void *arg)
 
 	printf("CFM MEP config:\n");
 	for (i = RTA_DATA(list); RTA_OK(i, rem); i = RTA_NEXT(i, rem)) {
-		if (i->rta_type != IFLA_BRIDGE_CFM_MEP_CONFIG_INFO)
+		if (i->rta_type != (IFLA_BRIDGE_CFM_MEP_CONFIG_INFO | NLA_F_NESTED))
 			continue;
 
-		parse_rtattr_nested(infotb, IFLA_BRIDGE_CFM_MEP_CONFIG_MAX, i);
+		parse_rtattr_flags(infotb, IFLA_BRIDGE_CFM_MEP_CONFIG_MAX, RTA_DATA(i), RTA_PAYLOAD(i), NLA_F_NESTED);
 
 		if (infotb[IFLA_BRIDGE_CFM_MEP_CONFIG_INSTANCE]) {
 			printf("Instance %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_MEP_CONFIG_INSTANCE]));
@@ -215,10 +214,10 @@ static int cfm_mep_config_show(struct nlmsghdr *n, void *arg)
 
 	printf("CFM MEP cc_config:\n");
 	for (i = RTA_DATA(list); RTA_OK(i, rem); i = RTA_NEXT(i, rem)) {
-		if (i->rta_type != IFLA_BRIDGE_CFM_CC_CONFIG_INFO)
+		if (i->rta_type != (IFLA_BRIDGE_CFM_CC_CONFIG_INFO | NLA_F_NESTED))
 			continue;
 
-		parse_rtattr_nested(infotb, IFLA_BRIDGE_CFM_CC_CONFIG_MAX, i);
+		parse_rtattr_flags(infotb, IFLA_BRIDGE_CFM_CC_CONFIG_MAX, RTA_DATA(i), RTA_PAYLOAD(i), NLA_F_NESTED);
 
 		if (infotb[IFLA_BRIDGE_CFM_CC_CONFIG_INSTANCE]) {
 			printf("Instance %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_CONFIG_INSTANCE]));
@@ -236,17 +235,17 @@ static int cfm_mep_config_show(struct nlmsghdr *n, void *arg)
 	printf("CFM MEP cc_peer_config:");
 	instance = 0xFFFFFFFF;
 	for (i = RTA_DATA(list); RTA_OK(i, rem); i = RTA_NEXT(i, rem)) {
-		if (i->rta_type != IFLA_BRIDGE_CFM_CC_PEER_MEP_INFO)
+		if (i->rta_type != (IFLA_BRIDGE_CFM_CC_PEER_MEP_INFO | NLA_F_NESTED))
 			continue;
 
-		parse_rtattr_nested(infotb, IFLA_BRIDGE_CFM_CC_PEER_MEP_MAX, i);
+		parse_rtattr_flags(infotb, IFLA_BRIDGE_CFM_CC_PEER_MEP_MAX, RTA_DATA(i), RTA_PAYLOAD(i), NLA_F_NESTED);
 
 		if (infotb[IFLA_BRIDGE_CFM_CC_PEER_MEP_INSTANCE]) {
 			if (instance != rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_PEER_MEP_INSTANCE])) {
 				instance = rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_PEER_MEP_INSTANCE]);
 				printf("\n");
 				printf("Instance %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_PEER_MEP_INSTANCE]));
-				printf("    Peer-mep ");
+				printf("    Peer-mep");
 			}
 			printf(" %u", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_PEER_MEPID]));
 		}
@@ -258,10 +257,10 @@ static int cfm_mep_config_show(struct nlmsghdr *n, void *arg)
 
 	printf("CFM MEP cc_ccm_tx_config:\n");
 	for (i = RTA_DATA(list); RTA_OK(i, rem); i = RTA_NEXT(i, rem)) {
-		if (i->rta_type != IFLA_BRIDGE_CFM_CC_CCM_TX_INFO)
+		if (i->rta_type != (IFLA_BRIDGE_CFM_CC_CCM_TX_INFO | NLA_F_NESTED))
 			continue;
 
-		parse_rtattr_nested(infotb, IFLA_BRIDGE_CFM_CC_CCM_TX_MAX, i);
+		parse_rtattr_flags(infotb, IFLA_BRIDGE_CFM_CC_CCM_TX_MAX, RTA_DATA(i), RTA_PAYLOAD(i), NLA_F_NESTED);
 
 		if (infotb[IFLA_BRIDGE_CFM_CC_CCM_TX_INSTANCE]) {
 			printf("Instance %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_CCM_TX_INSTANCE]));
@@ -281,10 +280,10 @@ static int cfm_mep_config_show(struct nlmsghdr *n, void *arg)
 
 	printf("CFM MEP cc_rdi_config:\n");
 	for (i = RTA_DATA(list); RTA_OK(i, rem); i = RTA_NEXT(i, rem)) {
-		if (i->rta_type != IFLA_BRIDGE_CFM_CC_RDI_INFO)
+		if (i->rta_type != (IFLA_BRIDGE_CFM_CC_RDI_INFO | NLA_F_NESTED))
 			continue;
 
-		parse_rtattr_nested(infotb, IFLA_BRIDGE_CFM_CC_RDI_MAX, i);
+		parse_rtattr_flags(infotb, IFLA_BRIDGE_CFM_CC_RDI_MAX, RTA_DATA(i), RTA_PAYLOAD(i), NLA_F_NESTED);
 
 		if (infotb[IFLA_BRIDGE_CFM_CC_RDI_INSTANCE]) {
 			printf("Instance %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_RDI_INSTANCE]));
@@ -320,11 +319,10 @@ static int cfm_mep_status_show(struct nlmsghdr *n, void *arg)
 		return 0;
 
 	parse_rtattr_flags(tb, IFLA_MAX, IFLA_RTA(ifi), len, NLA_F_NESTED);
-
 	if (!tb[IFLA_AF_SPEC])
 		return 0;
 
-	parse_rtattr_nested(aftb, IFLA_BRIDGE_MAX, tb[IFLA_AF_SPEC]);
+	parse_rtattr_flags(aftb, IFLA_BRIDGE_MAX, RTA_DATA(tb[IFLA_AF_SPEC]), RTA_PAYLOAD(tb[IFLA_AF_SPEC]), NLA_F_NESTED);
 	if (!aftb[IFLA_BRIDGE_CFM])
 		return 0;
 
@@ -333,10 +331,10 @@ static int cfm_mep_status_show(struct nlmsghdr *n, void *arg)
 
 	printf("CFM MEP status:\n");
 	for (i = RTA_DATA(list); RTA_OK(i, rem); i = RTA_NEXT(i, rem)) {
-		if (i->rta_type != IFLA_BRIDGE_CFM_MEP_STATUS_INFO)
+		if (i->rta_type != (IFLA_BRIDGE_CFM_MEP_STATUS_INFO | NLA_F_NESTED))
 			continue;
 
-		parse_rtattr_nested(infotb, IFLA_BRIDGE_CFM_MEP_STATUS_MAX, i);
+		parse_rtattr_flags(infotb, IFLA_BRIDGE_CFM_MEP_STATUS_MAX, RTA_DATA(i), RTA_PAYLOAD(i), NLA_F_NESTED);
 		if (!infotb[IFLA_BRIDGE_CFM_MEP_STATUS_INSTANCE])
 			continue;
 
@@ -353,10 +351,10 @@ static int cfm_mep_status_show(struct nlmsghdr *n, void *arg)
 	printf("CFM CC peer status:\n");
 	instance = 0xFFFFFFFF;
 	for (i = RTA_DATA(list); RTA_OK(i, rem); i = RTA_NEXT(i, rem)) {
-		if (i->rta_type != IFLA_BRIDGE_CFM_CC_PEER_STATUS_INFO)
+		if (i->rta_type != (IFLA_BRIDGE_CFM_CC_PEER_STATUS_INFO | NLA_F_NESTED))
 			continue;
 
-		parse_rtattr_nested(infotb, IFLA_BRIDGE_CFM_CC_PEER_STATUS_MAX, i);
+		parse_rtattr_flags(infotb, IFLA_BRIDGE_CFM_CC_PEER_STATUS_MAX, RTA_DATA(i), RTA_PAYLOAD(i), NLA_F_NESTED);
 		if (!infotb[IFLA_BRIDGE_CFM_CC_PEER_STATUS_INSTANCE])
 			continue;
 
@@ -374,9 +372,6 @@ static int cfm_mep_status_show(struct nlmsghdr *n, void *arg)
 		printf("        Seq unexp seen %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_PEER_STATUS_SEQ_UNEXP_SEEN]));
 		printf("\n");
 	}
-
-	list = aftb[IFLA_BRIDGE_CFM];
-	rem = RTA_PAYLOAD(list);
 
 	return 0;
 }

@@ -91,7 +91,7 @@ static int netlink_listen(struct rtnl_ctrl_data *who, struct nlmsghdr *n,
 	if (!tb[IFLA_AF_SPEC])
 		return 0;
 
-	parse_rtattr_nested(aftb, IFLA_BRIDGE_MAX, tb[IFLA_AF_SPEC]);
+	parse_rtattr_flags(aftb, IFLA_BRIDGE_MAX, RTA_DATA(tb[IFLA_AF_SPEC]), RTA_PAYLOAD(tb[IFLA_AF_SPEC]), NLA_F_NESTED);
 	if (!aftb[IFLA_BRIDGE_CFM])
 		return 0;
 
@@ -101,10 +101,10 @@ static int netlink_listen(struct rtnl_ctrl_data *who, struct nlmsghdr *n,
 	printf("CFM CC peer status:\n");
 	instance = 0xFFFFFFFF;
 	for (i = RTA_DATA(list); RTA_OK(i, rem); i = RTA_NEXT(i, rem)) {
-		if (i->rta_type != IFLA_BRIDGE_CFM_CC_PEER_STATUS_INFO)
+		if (i->rta_type != (IFLA_BRIDGE_CFM_CC_PEER_STATUS_INFO | NLA_F_NESTED))
 			continue;
 
-		parse_rtattr_nested(infotb, IFLA_BRIDGE_CFM_CC_PEER_STATUS_MAX, i);
+		parse_rtattr_flags(infotb, IFLA_BRIDGE_CFM_CC_PEER_STATUS_MAX, RTA_DATA(i), RTA_PAYLOAD(i), NLA_F_NESTED);
 		if (!infotb[IFLA_BRIDGE_CFM_CC_PEER_STATUS_INSTANCE])
 			continue;
 
