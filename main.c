@@ -10,7 +10,7 @@
 #include <getopt.h>
 #include <net/if.h>
 
-#include "offload.h"
+#include "cfm_netlink.h"
 #include "libnetlink.h"
 #include <linux/cfm_bridge.h>
 

@@ -14,7 +14,7 @@
 
 #include "libnetlink.h"
 #include "list.h"
-#include "offload.h"
+#include "cfm_netlink.h"
 
 static struct rtnl_handle rth = { .fd = -1 };
 

@@ -51,9 +51,11 @@ add_definitions(-Wall)
 
 include_directories(${LibNL_INCLUDE_DIR} ${LibEV_INCLUDE_DIR} ${LibMNL_INCLUDE_DIR} include/uapi)
 
-add_executable(cfm main.c offload.c libnetlink.c)
+add_library(cfm_netlink cfm_netlink.c)
+
+add_executable(cfm main.c libnetlink.c)
 target_link_libraries(cfm ${LibNL_LIBRARY} ${LibNL_GENL_LIBRARY}
-    ${LibEV_LIBRARY} ${LibMNL_LIBRARY})
+    ${LibEV_LIBRARY} ${LibMNL_LIBRARY} cfm_netlink)
 
 add_executable(cfm_server cfm_server.c libnetlink.c)
 target_link_libraries(cfm_server ${LibNL_LIBRARY} ${LibNL_GENL_LIBRARY}
