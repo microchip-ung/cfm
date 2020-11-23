@@ -16,7 +16,7 @@
 #include "list.h"
 #include "offload.h"
 
-struct rtnl_handle rth = { .fd = -1 };
+static struct rtnl_handle rth = { .fd = -1 };
 
 static LIST_HEAD(mrp_rings);
 
@@ -128,13 +128,13 @@ static char *int_interval(uint32_t value)
 	return "undef";
 }
 
-int addattrmac(struct nlmsghdr *n, int maxlen, int type, struct mac_addr *mac)
+static int addattrmac(struct nlmsghdr *n, int maxlen, int type, struct mac_addr *mac)
 {
 //printf("addattrmac sizeof(*mac) %lu  rta_len %lu  mac %02X-%02X-%02X-%02X-%02X-%02X\n", sizeof(*mac), RTA_LENGTH(sizeof(mac->addr)), mac->addr[0], mac->addr[1], mac->addr[2], mac->addr[3], mac->addr[4], mac->addr[5]);
 	return addattr_l(n, maxlen, type, mac->addr, sizeof(mac->addr));
 }
 
-int addattrmaid(struct nlmsghdr *n, int maxlen, int type, struct maid_data *maid)
+static int addattrmaid(struct nlmsghdr *n, int maxlen, int type, struct maid_data *maid)
 {
 //printf("addattrmaid sizeof(*maid) %lu  rta_len %lu  len %u  maid %02X-%02X-%02X-%s\n", sizeof(*maid), RTA_LENGTH(sizeof(maid->data)), len, maid->data[0], maid->data[1], maid->data[2], &maid->data[3]);
 	return addattr_l(n, maxlen, type, maid->data, sizeof(maid->data));
