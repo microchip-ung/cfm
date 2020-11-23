@@ -11,7 +11,7 @@ struct mac_addr {
 };
 
 struct maid_data {
-	unsigned char data[BR_CFM_MAID_LENGTH];
+	unsigned char data[CFM_MAID_LENGTH];
 };
 
 int cfm_offload_mep_create(uint32_t br_ifindex, uint32_t instance, uint32_t domain, uint32_t direction,
