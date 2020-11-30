@@ -24,8 +24,6 @@
 #include "cfm_netlink.h"
 #include "libnetlink.h"
 
-#include "utils.h"
-
 volatile bool quit = false;
 
 static void handle_signal(int sig)
