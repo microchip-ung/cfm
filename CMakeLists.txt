@@ -52,6 +52,7 @@ add_definitions(-Wall)
 include_directories(${LibNL_INCLUDE_DIR} ${LibEV_INCLUDE_DIR} ${LibMNL_INCLUDE_DIR} include/uapi)
 
 add_library(cfm_netlink cfm_netlink.c)
+set_target_properties(cfm_netlink PROPERTIES PUBLIC_HEADER "cfm_netlink.h")
 
 add_executable(cfm main.c libnetlink.c)
 target_link_libraries(cfm ${LibNL_LIBRARY} ${LibNL_GENL_LIBRARY}
@@ -62,4 +63,6 @@ target_link_libraries(cfm_server ${LibNL_LIBRARY} ${LibNL_GENL_LIBRARY}
     ${LibEV_LIBRARY} ${LibMNL_LIBRARY})
 
 install(TARGETS cfm cfm_server RUNTIME DESTINATION bin)
-
+install(TARGETS cfm_netlink
+        LIBRARY DESTINATION lib
+        PUBLIC_HEADER DESTINATION include)
