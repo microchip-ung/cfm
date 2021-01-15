@@ -366,7 +366,8 @@ static int cmd_cc_ccm_tx(int argc, char *const *argv)
 		} else if (strcmp(*argv, "porttlv-value") == 0) {
 			NEXT_ARG();
 			porttlv_value = atoi(*argv);
-		}
+		} else
+			return -1;
 
 		argc--; argv++;
 	}
