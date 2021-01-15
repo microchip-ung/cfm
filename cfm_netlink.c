@@ -106,7 +106,7 @@ static char *rta_getattr_short_name(const struct rtattr *rta)
 	return buf_ret;
 }
 
-static char *rta_getattr_maid_name(const struct rtattr *rta)
+static char *rta_getattr_domain_name(const struct rtattr *rta)
 {
 	static char buf_ret[100];
 	char *maid;
@@ -252,8 +252,8 @@ static int cfm_mep_config_show(struct nlmsghdr *n, void *arg)
 			printf("Instance %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_CONFIG_INSTANCE]));
 			printf("    Enable %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_CONFIG_ENABLE]));
 			printf("    Interval %s\n", int_interval(rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_CONFIG_EXP_INTERVAL])));
-			printf("    Maid-name %s\n",
-				rta_getattr_maid_name(infotb[IFLA_BRIDGE_CFM_CC_CONFIG_EXP_MAID]));
+			printf("    Domain-name %s\n",
+				rta_getattr_domain_name(infotb[IFLA_BRIDGE_CFM_CC_CONFIG_EXP_MAID]));
 			printf("    Short-name %s\n",
 				rta_getattr_short_name(infotb[IFLA_BRIDGE_CFM_CC_CONFIG_EXP_MAID]));
 		}

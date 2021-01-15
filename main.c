@@ -77,25 +77,25 @@ static struct mac_addr mac_array(char *arg)
 	return mac;
 }
 
-static struct maid_data maid_array(char *maid_name, char *short_name)
+static struct maid_data maid_array(char *domain_name, char *short_name)
 {
 	struct maid_data maid;
-	int maid_name_len = 0;
+	int domain_name_len = 0;
 	int short_name_len = 0;
 	int maid_idx = 0;
 
 	memset(maid.data, 0, sizeof(maid));
 
-	if (maid_name != NULL) 
-		maid_name_len = strlen(maid_name);
+	if (domain_name != NULL) 
+		domain_name_len = strlen(domain_name);
 	if (short_name != NULL) 
 		short_name_len = strlen(short_name);
 
-	if (maid_name_len) {
+	if (domain_name_len) {
 		maid.data[0] = 4; /* Maintenance Domain Name Format field - Character string */
-		maid.data[1] = maid_name_len;
-		memcpy(&maid.data[2], maid_name, maid_name_len);
-		maid_idx = 2 + maid_name_len;
+		maid.data[1] = domain_name_len;
+		memcpy(&maid.data[2], domain_name, domain_name_len);
+		maid_idx = 2 + domain_name_len;
 	} else {
 		maid.data[0] = 1; /* Maintenance Domain Name Format field - No Maintenance Domain Name present */
 		maid_idx = 1;
@@ -218,7 +218,7 @@ static int cmd_cc_config(int argc, char *const *argv)
 {
 	uint32_t br_ifindex = 0, enable = 0, interval = 0, instance = 0;
 	struct maid_data maid;
-	char *maid_name = NULL;
+	char *domain_name = NULL;
 	char *short_name = NULL;
 
 	memset(&maid, 0, sizeof(maid));
@@ -240,9 +240,9 @@ static int cmd_cc_config(int argc, char *const *argv)
 		} else if (strcmp(*argv, "interval") == 0) {
 			NEXT_ARG();
 			interval = interval_int(*argv);
-		} else if (strcmp(*argv, "maid-name") == 0) {
+		} else if (strcmp(*argv, "domain-name") == 0) {
 			NEXT_ARG();
-			maid_name = *argv;
+			domain_name = *argv;
 		} else if (strcmp(*argv, "short-name") == 0) {
 			NEXT_ARG();
 			short_name = *argv;
@@ -252,7 +252,7 @@ static int cmd_cc_config(int argc, char *const *argv)
 		argc--; argv++;
 	}
 
-	maid = maid_array(maid_name, short_name);
+	maid = maid_array(domain_name, short_name);
 
 	if (br_ifindex == 0 || instance == 0)
 		return -1;
@@ -443,7 +443,7 @@ static const struct command commands[] =
 	 "Configure MEP instance"},
 	{"cc-config", cmd_cc_config,
 	 "bridge <bridge> instance <instance> enable <enable> interval <interval> "
-	 "maid-name <name> short-name <name>", "Configure CC function"},
+	 "domain-name <name> short-name <name>", "Configure CC function"},
 	{"cc-peer", cmd_cc_peer,
 	 "bridge <bridge> instance <instance> remove <remove> mepid <mepid> ",
 	 "Configure CC Peer-MEP ID function"},
