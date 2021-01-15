@@ -83,15 +83,44 @@ static char *rta_getattr_mac(const struct rtattr *rta)
 	return buf_ret;
 }
 
-static char *rta_getattr_maid(const struct rtattr *rta)
+static char *rta_getattr_short_name(const struct rtattr *rta)
 {
 	static char buf_ret[100];
 	char *maid;
+	int length = 0, maid_idx = 0;
 
 	memset(buf_ret, 0, sizeof(buf_ret));
 
 	maid = RTA_DATA(rta);
-	strncpy(buf_ret, &maid[3], sizeof(buf_ret));
+
+	maid_idx = 3;
+	length = maid[2];
+	if (maid[0] != 1) {
+		length = maid[4];
+		maid_idx = 4 + maid[1];
+	}
+
+	if (length <= sizeof(buf_ret))
+		memcpy(buf_ret, &maid[maid_idx], length);
+
+	return buf_ret;
+}
+
+static char *rta_getattr_maid_name(const struct rtattr *rta)
+{
+	static char buf_ret[100];
+	char *maid;
+	int length = 0;
+
+	memset(buf_ret, 0, sizeof(buf_ret));
+
+	maid = RTA_DATA(rta);
+
+	if (maid[0] != 1) {
+		length = maid[1];
+		if (length <= sizeof(buf_ret))
+			memcpy(buf_ret, &maid[2], length);
+	}
 
 	return buf_ret;
 }
@@ -99,32 +128,32 @@ static char *rta_getattr_maid(const struct rtattr *rta)
 static char *int_domain(uint32_t value)
 {
 	switch (value) {
-    case BR_CFM_PORT: return "port";
-    case BR_CFM_VLAN: return "vlan";
-    }
+	case BR_CFM_PORT: return "port";
+	case BR_CFM_VLAN: return "vlan";
+	}
 	return "undef";
 }
 
 static char *int_direction(uint32_t value)
 {
 	switch (value) {
-    case BR_CFM_MEP_DIRECTION_DOWN: return "down";
-    case BR_CFM_MEP_DIRECTION_UP: return "up";
-    }
+	case BR_CFM_MEP_DIRECTION_DOWN: return "down";
+	case BR_CFM_MEP_DIRECTION_UP: return "up";
+	}
 	return "undef";
 }
 
 static char *int_interval(uint32_t value)
 {
 	switch (value) {
-    case BR_CFM_CCM_INTERVAL_3_3_MS: return "3ms3";
-    case BR_CFM_CCM_INTERVAL_10_MS: return "10ms";
-    case BR_CFM_CCM_INTERVAL_100_MS: return "100ms";
-    case BR_CFM_CCM_INTERVAL_1_SEC: return "1s";
-    case BR_CFM_CCM_INTERVAL_10_SEC: return "10s";
-    case BR_CFM_CCM_INTERVAL_1_MIN: return "1m";
-    case BR_CFM_CCM_INTERVAL_10_MIN: return "10m";
-    }
+	case BR_CFM_CCM_INTERVAL_3_3_MS: return "3ms3";
+	case BR_CFM_CCM_INTERVAL_10_MS: return "10ms";
+	case BR_CFM_CCM_INTERVAL_100_MS: return "100ms";
+	case BR_CFM_CCM_INTERVAL_1_SEC: return "1s";
+	case BR_CFM_CCM_INTERVAL_10_SEC: return "10s";
+	case BR_CFM_CCM_INTERVAL_1_MIN: return "1m";
+	case BR_CFM_CCM_INTERVAL_10_MIN: return "10m";
+	}
 	return "undef";
 }
 
@@ -224,7 +253,9 @@ static int cfm_mep_config_show(struct nlmsghdr *n, void *arg)
 			printf("    Enable %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_CONFIG_ENABLE]));
 			printf("    Interval %s\n", int_interval(rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_CONFIG_EXP_INTERVAL])));
 			printf("    Maid-name %s\n",
-				rta_getattr_maid(infotb[IFLA_BRIDGE_CFM_CC_CONFIG_EXP_MAID]));
+				rta_getattr_maid_name(infotb[IFLA_BRIDGE_CFM_CC_CONFIG_EXP_MAID]));
+			printf("    Short-name %s\n",
+				rta_getattr_short_name(infotb[IFLA_BRIDGE_CFM_CC_CONFIG_EXP_MAID]));
 		}
 		printf("\n");
 	}
