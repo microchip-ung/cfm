@@ -56,7 +56,7 @@ static int netlink_listen(struct rtnl_ctrl_data *who, struct nlmsghdr *n,
 			  void *arg)
 {
 	struct rtattr *aftb[IFLA_BRIDGE_MAX + 1];
-	struct rtattr *infotb[IFLA_BRIDGE_CFM_MEP_STATUS_MAX + 1];
+	struct rtattr *infotb[IFLA_BRIDGE_CFM_CC_PEER_EVENT_MAX + 1];
 	struct ifinfomsg *ifi = NLMSG_DATA(n);
 	struct rtattr *tb[IFLA_MAX + 1];
 	int len = n->nlmsg_len;
@@ -96,22 +96,22 @@ static int netlink_listen(struct rtnl_ctrl_data *who, struct nlmsghdr *n,
 	list = aftb[IFLA_BRIDGE_CFM];
 	rem = RTA_PAYLOAD(list);
 
-	printf("CFM CC peer status:\n");
+	printf("EVENT CFM CC peer status:\n");
 	instance = 0xFFFFFFFF;
 	for (i = RTA_DATA(list); RTA_OK(i, rem); i = RTA_NEXT(i, rem)) {
-		if (i->rta_type != (IFLA_BRIDGE_CFM_CC_PEER_STATUS_INFO | NLA_F_NESTED))
+		if (i->rta_type != (IFLA_BRIDGE_CFM_CC_PEER_EVENT_INFO | NLA_F_NESTED))
 			continue;
 
-		parse_rtattr_flags(infotb, IFLA_BRIDGE_CFM_CC_PEER_STATUS_MAX, RTA_DATA(i), RTA_PAYLOAD(i), NLA_F_NESTED);
-		if (!infotb[IFLA_BRIDGE_CFM_CC_PEER_STATUS_INSTANCE])
+		parse_rtattr_flags(infotb, IFLA_BRIDGE_CFM_CC_PEER_EVENT_MAX, RTA_DATA(i), RTA_PAYLOAD(i), NLA_F_NESTED);
+		if (!infotb[IFLA_BRIDGE_CFM_CC_PEER_EVENT_INSTANCE])
 			continue;
 
-		if (instance != rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_PEER_STATUS_INSTANCE])) {
-			instance = rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_PEER_STATUS_INSTANCE]);
-			printf("Instance %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_PEER_STATUS_INSTANCE]));
+		if (instance != rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_PEER_EVENT_INSTANCE])) {
+			instance = rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_PEER_EVENT_INSTANCE]);
+			printf("Instance %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_PEER_EVENT_INSTANCE]));
 		}
-		printf("    Peer-mep %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_PEER_STATUS_PEER_MEPID]));
-		printf("        CCM defect %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_PEER_STATUS_CCM_DEFECT]));
+		printf("    Peer-mep %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_PEER_EVENT_PEER_MEPID]));
+		printf("        CCM defect %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_CC_PEER_EVENT_CCM_DEFECT]));
 		printf("\n");
 	}
 
