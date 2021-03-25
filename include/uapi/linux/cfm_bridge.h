@@ -33,8 +33,15 @@ struct br_cfm_common_hdr {
 	__u8 tlv_offset;
 };
 
+struct br_cfm_raps_specific_info {
+	__u8 request_subcode;
+	__u8 status;
+	__u8 node_id[6];
+};
+
 enum br_cfm_opcodes {
-	BR_CFM_OPCODE_CCM = 0x1,
+	BR_CFM_OPCODE_CCM = 1,
+	BR_CFM_OPCODE_RAPS = 40,
 };
 
 /* MEP domain */
@@ -43,10 +50,10 @@ enum br_cfm_domain {
 	BR_CFM_VLAN,
 };
 
-/* MEP direction */
-enum br_cfm_mep_direction {
-	BR_CFM_MEP_DIRECTION_DOWN,
-	BR_CFM_MEP_DIRECTION_UP,
+/* MEP/MIP direction */
+enum br_cfm_direction {
+	BR_CFM_DIRECTION_DOWN,
+	BR_CFM_DIRECTION_UP,
 };
 
 /* CCM interval supported. */
@@ -59,6 +66,13 @@ enum br_cfm_ccm_interval {
 	BR_CFM_CCM_INTERVAL_10_SEC,
 	BR_CFM_CCM_INTERVAL_1_MIN,
 	BR_CFM_CCM_INTERVAL_10_MIN,
+};
+
+enum br_cfm_raps_handling {
+	BR_CFM_RAPS_HANDLING_NONE,        // RAPS PDUs are not handled
+	BR_CFM_RAPS_HANDLING_COPY_CPU,    // RAPS PDUs are copied to CPU
+	BR_CFM_RAPS_HANDLING_REDIR_CPU,   // RAPS PDUs are redirected to CPU
+	BR_CFM_RAPS_HANDLING_DISCARD,     // RAPS PDUs are discarded
 };
 
 #endif

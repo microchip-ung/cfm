@@ -781,6 +781,9 @@ enum {
 #define RTEXT_FILTER_MRP	(1 << 4)
 #define RTEXT_FILTER_CFM_CONFIG	(1 << 5)
 #define RTEXT_FILTER_CFM_STATUS	(1 << 6)
+#define RTEXT_FILTER_CFM_EVENT	(1 << 7)
+#define RTEXT_FILTER_CFM_MIP_CONFIG (1 << 8)
+#define RTEXT_FILTER_CFM_MIP_EVENT  (1 << 9)
 
 /* End of information exported to user level */
 

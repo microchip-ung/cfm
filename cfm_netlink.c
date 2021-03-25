@@ -137,8 +137,8 @@ static char *int_domain(uint32_t value)
 static char *int_direction(uint32_t value)
 {
 	switch (value) {
-	case BR_CFM_MEP_DIRECTION_DOWN: return "down";
-	case BR_CFM_MEP_DIRECTION_UP: return "up";
+	case BR_CFM_DIRECTION_DOWN: return "down";
+	case BR_CFM_DIRECTION_UP: return "up";
 	}
 	return "undef";
 }
@@ -153,6 +153,17 @@ static char *int_interval(uint32_t value)
 	case BR_CFM_CCM_INTERVAL_10_SEC: return "10s";
 	case BR_CFM_CCM_INTERVAL_1_MIN: return "1m";
 	case BR_CFM_CCM_INTERVAL_10_MIN: return "10m";
+	}
+	return "undef";
+}
+
+static char *int_raps(uint32_t value)
+{
+	switch (value) {
+	case BR_CFM_RAPS_HANDLING_NONE: return "none";
+	case BR_CFM_RAPS_HANDLING_COPY_CPU: return "copy";
+	case BR_CFM_RAPS_HANDLING_REDIR_CPU: return "redirect";
+	case BR_CFM_RAPS_HANDLING_DISCARD: return "discard";
 	}
 	return "undef";
 }
@@ -407,6 +418,77 @@ static int cfm_mep_status_show(struct nlmsghdr *n, void *arg)
 	return 0;
 }
 
+static int cfm_mip_config_show(struct nlmsghdr *n, void *arg)
+{
+	struct rtattr *aftb[IFLA_BRIDGE_MAX + 1];
+	struct rtattr *infotb[IFLA_BRIDGE_CFM_MIP_CREATE_MAX + 1];
+	struct ifinfomsg *ifi = NLMSG_DATA(n);
+	struct rtattr *tb[IFLA_MAX + 1];
+	int len = n->nlmsg_len;
+	struct rtattr *i, *list;
+	int rem;
+	char ifname[IF_NAMESIZE];
+
+	memset(ifname, 0, IF_NAMESIZE);
+
+	len -= NLMSG_LENGTH(sizeof(*ifi));
+	if (len < 0) {
+		fprintf(stderr, "Message too short!\n");
+		return -1;
+	}
+
+	if (ifi->ifi_family != AF_BRIDGE)
+		return 0;
+
+	parse_rtattr_flags(tb, IFLA_MAX, IFLA_RTA(ifi), len, NLA_F_NESTED);
+	if (!tb[IFLA_AF_SPEC])
+		return 0;
+
+	parse_rtattr_flags(aftb, IFLA_BRIDGE_MAX, RTA_DATA(tb[IFLA_AF_SPEC]), RTA_PAYLOAD(tb[IFLA_AF_SPEC]), NLA_F_NESTED);
+	if (!aftb[IFLA_BRIDGE_CFM])
+		return 0;
+
+	list = aftb[IFLA_BRIDGE_CFM];
+	rem = RTA_PAYLOAD(list);
+
+	printf("CFM MIP create:\n");
+	for (i = RTA_DATA(list); RTA_OK(i, rem); i = RTA_NEXT(i, rem)) {
+		if (i->rta_type != (IFLA_BRIDGE_CFM_MIP_CREATE_INFO | NLA_F_NESTED))
+			continue;
+
+		parse_rtattr_flags(infotb, IFLA_BRIDGE_CFM_MIP_CREATE_MAX, RTA_DATA(i), RTA_PAYLOAD(i), NLA_F_NESTED);
+
+		if (infotb[IFLA_BRIDGE_CFM_MIP_CREATE_INSTANCE]) {
+			printf("Instance %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_MIP_CREATE_INSTANCE]));
+			printf("    Direction %s\n", int_direction(rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_MIP_CREATE_DIRECTION])));
+			printf("    Port %s\n", if_indextoname(rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_MIP_CREATE_IFINDEX]), ifname));
+			printf("    Vlan %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_MIP_CREATE_VLAN]));
+		}
+		printf("\n");
+	}
+
+	list = aftb[IFLA_BRIDGE_CFM];
+	rem = RTA_PAYLOAD(list);
+
+	printf("CFM MIP config:\n");
+	for (i = RTA_DATA(list); RTA_OK(i, rem); i = RTA_NEXT(i, rem)) {
+		if (i->rta_type != (IFLA_BRIDGE_CFM_MIP_CONFIG_INFO | NLA_F_NESTED))
+			continue;
+
+		parse_rtattr_flags(infotb, IFLA_BRIDGE_CFM_MIP_CONFIG_MAX, RTA_DATA(i), RTA_PAYLOAD(i), NLA_F_NESTED);
+
+		if (infotb[IFLA_BRIDGE_CFM_MIP_CONFIG_INSTANCE]) {
+			printf("Instance %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_MIP_CONFIG_INSTANCE]));
+			printf("    Unicast_mac %s\n", rta_getattr_mac(infotb[IFLA_BRIDGE_CFM_MIP_CONFIG_UNICAST_MAC]));
+			printf("    Mdlevel %u\n", rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_MIP_CONFIG_MDLEVEL]));
+			printf("    Raps %s\n", int_raps(rta_getattr_u32(infotb[IFLA_BRIDGE_CFM_MIP_CONFIG_RAPS_HANDLING])));
+		}
+		printf("\n");
+	}
+
+	return 0;
+}
+
 int cfm_offload_init(void)
 {
 	if (rtnl_open(&rth, 0) < 0) {
@@ -587,4 +669,72 @@ int cfm_offload_mep_status_show(uint32_t br_ifindex)
 	}
 
 	return rtnl_dump_filter(&rth, cfm_mep_status_show, NULL);
+}
+
+int cfm_offload_mip_create(uint32_t br_ifindex, uint32_t instance, uint32_t vlan, uint32_t direction, uint32_t ifindex)
+{
+	struct rtattr *afspec, *af, *af_sub;
+	struct request req = { 0 };
+
+	cfm_nl_bridge_prepare(br_ifindex, RTM_SETLINK, &req, &afspec,
+			      &af, &af_sub, IFLA_BRIDGE_CFM_MIP_CREATE);
+
+	addattr32(&req.n, sizeof(req), IFLA_BRIDGE_CFM_MIP_CREATE_INSTANCE,
+		  instance);
+	addattr32(&req.n, sizeof(req), IFLA_BRIDGE_CFM_MIP_CREATE_VLAN,
+		  vlan);
+	addattr32(&req.n, sizeof(req), IFLA_BRIDGE_CFM_MIP_CREATE_DIRECTION,
+		  direction);
+	addattr32(&req.n, sizeof(req), IFLA_BRIDGE_CFM_MIP_CREATE_IFINDEX,
+		  ifindex);
+
+	return cfm_nl_terminate(&req, afspec, af, af_sub);
+}
+
+int cfm_offload_mip_delete(uint32_t br_ifindex, uint32_t instance)
+{
+	struct rtattr *afspec, *af, *af_sub;
+	struct request req = { 0 };
+
+	cfm_nl_bridge_prepare(br_ifindex, RTM_SETLINK, &req, &afspec, &af,
+			      &af_sub, IFLA_BRIDGE_CFM_MIP_DELETE);
+
+	addattr32(&req.n, sizeof(req), IFLA_BRIDGE_CFM_MIP_DELETE_INSTANCE,
+		  instance);
+
+	return cfm_nl_terminate(&req, afspec, af, af_sub);
+}
+
+int cfm_offload_mip_config(uint32_t br_ifindex, uint32_t instance, struct mac_addr *mac,
+			   uint32_t level, uint32_t raps)
+{
+	struct rtattr *afspec, *af, *af_sub;
+	struct request req = { 0 };
+
+	cfm_nl_bridge_prepare(br_ifindex, RTM_SETLINK, &req, &afspec,
+			      &af, &af_sub, IFLA_BRIDGE_CFM_MIP_CONFIG);
+
+	addattr32(&req.n, sizeof(req), IFLA_BRIDGE_CFM_MIP_CONFIG_INSTANCE,
+		  instance);
+	addattrmac(&req.n, sizeof(req), IFLA_BRIDGE_CFM_MIP_CONFIG_UNICAST_MAC,
+		   mac);
+	addattr32(&req.n, sizeof(req), IFLA_BRIDGE_CFM_MIP_CONFIG_MDLEVEL,
+		  level);
+	addattr32(&req.n, sizeof(req), IFLA_BRIDGE_CFM_MIP_CONFIG_RAPS_HANDLING,
+		  raps);
+
+	return cfm_nl_terminate(&req, afspec, af, af_sub);
+}
+
+int cfm_offload_mip_config_show(uint32_t br_ifindex)
+{
+	int err;
+
+	err = rtnl_linkdump_req_filter(&rth, PF_BRIDGE, RTEXT_FILTER_CFM_MIP_CONFIG);
+	if (err < 0) {
+		fprintf(stderr, "Cannot rtnl_linkdump_req_filter\n");
+		return err;
+	}
+
+	return rtnl_dump_filter(&rth, cfm_mip_config_show, NULL);
 }

@@ -32,12 +32,12 @@ static enum br_cfm_domain domain_int(char *arg)
 	return -1;
 }
 
-static enum br_cfm_mep_direction direction_int(char *arg)
+static enum br_cfm_direction direction_int(char *arg)
 {
 	if (strcmp(arg, "down") == 0)
-		return BR_CFM_MEP_DIRECTION_DOWN;
+		return BR_CFM_DIRECTION_DOWN;
 	if (strcmp(arg, "up") == 0)
-		return BR_CFM_MEP_DIRECTION_UP;
+		return BR_CFM_DIRECTION_UP;
 	return -1;
 }
 
@@ -57,6 +57,19 @@ static enum br_cfm_ccm_interval interval_int(char *arg)
 		return BR_CFM_CCM_INTERVAL_1_MIN;
 	if (strcmp(arg, "10m") == 0)
 		return BR_CFM_CCM_INTERVAL_10_MIN;
+	return -1;
+}
+
+static enum br_cfm_raps_handling raps_int(char *arg)
+{
+	if (strcmp(arg, "none") == 0)
+		return BR_CFM_RAPS_HANDLING_NONE;
+	if (strcmp(arg, "copy") == 0)
+		return BR_CFM_RAPS_HANDLING_COPY_CPU;
+	if (strcmp(arg, "redirect") == 0)
+		return BR_CFM_RAPS_HANDLING_REDIR_CPU;
+	if (strcmp(arg, "discard") == 0)
+		return BR_CFM_RAPS_HANDLING_DISCARD;
 	return -1;
 }
 
@@ -424,6 +437,133 @@ static int cmd_mep_config_show(int argc, char *const *argv)
 	return cfm_offload_mep_config_show(br_ifindex);
 }
 
+static int cmd_mip_create(int argc, char *const *argv)
+{
+	uint32_t br_ifindex = 0, port_ifindex = 0, instance = 0, vlan = 0, direction = 0;
+
+	/* skip the command */
+	argv++;
+	argc -= 1;
+
+	while (argc > 0) {
+		if (strcmp(*argv, "bridge") == 0) {
+			NEXT_ARG();
+			br_ifindex = if_nametoindex(*argv);
+		} else if (strcmp(*argv, "instance") == 0) {
+			NEXT_ARG();
+			instance = atoi(*argv);
+		} else if (strcmp(*argv, "vlan") == 0) {
+			NEXT_ARG();
+			vlan = domain_int(*argv);
+		} else if (strcmp(*argv, "direction") == 0) {
+			NEXT_ARG();
+			direction = direction_int(*argv);
+		} else if (strcmp(*argv, "port") == 0) {
+			NEXT_ARG();
+			port_ifindex = if_nametoindex(*argv);
+		}
+
+		argc--; argv++;
+	}
+
+	if (br_ifindex == 0 || instance == 0 || port_ifindex == 0)
+		return -1;
+
+	if (vlan == -1 || direction == -1)
+		return -1;
+
+	return cfm_offload_mip_create(br_ifindex, instance, vlan, direction, port_ifindex);
+}
+
+static int cmd_mip_delete(int argc, char *const *argv)
+{
+	uint32_t br_ifindex = 0, instance = 0;
+
+	/* skip the command */
+	argv++;
+	argc -= 1;
+
+	while (argc > 0) {
+		if (strcmp(*argv, "bridge") == 0) {
+			NEXT_ARG();
+			br_ifindex = if_nametoindex(*argv);
+		} else if (strcmp(*argv, "instance") == 0) {
+			NEXT_ARG();
+			instance = atoi(*argv);
+		}
+
+		argc--; argv++;
+	}
+
+	if (br_ifindex == 0 || instance == 0)
+		return -1;
+
+	return cfm_offload_mip_delete(br_ifindex, instance);
+}
+
+static int cmd_mip_config(int argc, char *const *argv)
+{
+	uint32_t br_ifindex = 0, level = 0, raps = 0, instance = 0;
+	struct mac_addr mac;
+
+	memset(&mac, 0, sizeof(mac));
+
+	/* skip the command */
+	argv++;
+	argc -= 1;
+
+	while (argc > 0) {
+		if (strcmp(*argv, "bridge") == 0) {
+			NEXT_ARG();
+			br_ifindex = if_nametoindex(*argv);
+		} else if (strcmp(*argv, "instance") == 0) {
+			NEXT_ARG();
+			instance = atoi(*argv);
+		} else if (strcmp(*argv, "mac") == 0) {
+			NEXT_ARG();
+			if (strlen(*argv) != 17)	/* Must be 17 characters to be XX-XX-XX-XX-XX-XX */
+				return -1;
+			mac = mac_array(*argv);
+		} else if (strcmp(*argv, "level") == 0) {
+			NEXT_ARG();
+			level = atoi(*argv);
+		} else if (strcmp(*argv, "raps") == 0) {
+			NEXT_ARG();
+			raps = raps_int(*argv);
+		}
+
+		argc--; argv++;
+	}
+
+	if (br_ifindex == 0 || instance == 0)
+		return -1;
+
+	return cfm_offload_mip_config(br_ifindex, instance, &mac, level, raps);
+}
+
+static int cmd_mip_config_show(int argc, char *const *argv)
+{
+	uint32_t br_ifindex = 0;
+
+	/* skip the command */
+	argv++;
+	argc -= 1;
+
+	while (argc > 0) {
+		if (strcmp(*argv, "bridge") == 0) {
+			NEXT_ARG();
+			br_ifindex = if_nametoindex(*argv);
+		}
+
+		argc--; argv++;
+	}
+
+	if (br_ifindex == 0)
+		return -1;
+
+	return cfm_offload_mip_config_show(br_ifindex);
+}
+
 struct command
 {
 	const char *name;
@@ -459,6 +599,16 @@ static const struct command commands[] =
 	 "bridge <bridge>", "Show MEP instances status"},
 	{"mep-config-show", cmd_mep_config_show,
 	 "bridge <bridge>", "Show MEP instances configuration"},
+	{"mip-create", cmd_mip_create,
+	 "bridge <bridge> instance <instance> direction <direction> port <port> "
+	 "vlan <vid>", "Create MIP instance"},
+	{"mip-delete", cmd_mip_delete,
+	 "bridge <bridge> instance <instance>", "Delete MIP instance"},
+	{"mip-config", cmd_mip_config,
+	 "bridge <bridge> instance <instance> mac <mac> level <level> raps <handling> ",
+	 "Configure MIP instance"},
+	{"mip-config-show", cmd_mip_config_show,
+	 "bridge <bridge>", "Show MIP instances configuration"},
 };
 
 static void command_helpall(void)
