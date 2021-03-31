@@ -454,7 +454,7 @@ static int cmd_mip_create(int argc, char *const *argv)
 			instance = atoi(*argv);
 		} else if (strcmp(*argv, "vlan") == 0) {
 			NEXT_ARG();
-			vlan = domain_int(*argv);
+			vlan = atoi(*argv);
 		} else if (strcmp(*argv, "direction") == 0) {
 			NEXT_ARG();
 			direction = direction_int(*argv);
