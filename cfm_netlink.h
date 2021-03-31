@@ -37,4 +37,6 @@ int cfm_offload_mip_delete(uint32_t br_ifindex, uint32_t instance);
 int cfm_offload_mip_config(uint32_t br_ifindex, uint32_t instance, struct mac_addr *mac, uint32_t level,
 			   uint32_t raps);
 int cfm_offload_mip_config_show(uint32_t br_ifindex);
+
+int cfm_offload_mep_instance_get(uint32_t br_ifindex, uint32_t port_ifindex, uint32_t *instance);
 #endif
