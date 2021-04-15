@@ -439,7 +439,7 @@ static int cmd_mep_config_show(int argc, char *const *argv)
 
 static int cmd_mip_create(int argc, char *const *argv)
 {
-	uint32_t br_ifindex = 0, port_ifindex = 0, instance = 0, vlan = 0, direction = 0;
+	uint32_t br_ifindex = 0, port_ifindex = 0, instance = 0, vlan_ifindex = 0, direction = 0;
 
 	/* skip the command */
 	argv++;
@@ -454,7 +454,7 @@ static int cmd_mip_create(int argc, char *const *argv)
 			instance = atoi(*argv);
 		} else if (strcmp(*argv, "vlan") == 0) {
 			NEXT_ARG();
-			vlan = atoi(*argv);
+			vlan_ifindex = if_nametoindex(*argv);
 		} else if (strcmp(*argv, "direction") == 0) {
 			NEXT_ARG();
 			direction = direction_int(*argv);
@@ -469,10 +469,10 @@ static int cmd_mip_create(int argc, char *const *argv)
 	if (br_ifindex == 0 || instance == 0 || port_ifindex == 0)
 		return -1;
 
-	if (vlan == -1 || direction == -1)
+	if (vlan_ifindex == -1 || direction == -1)
 		return -1;
 
-	return cfm_offload_mip_create(br_ifindex, instance, vlan, direction, port_ifindex);
+	return cfm_offload_mip_create(br_ifindex, instance, vlan_ifindex, direction, port_ifindex);
 }
 
 static int cmd_mip_delete(int argc, char *const *argv)
@@ -576,7 +576,7 @@ static const struct command commands[] =
 {
 	{"mep-create", cmd_mep_create,
 	 "bridge <bridge> instance <instance> domain <domain> direction <direction> "
-	 "port <port>", "Create MEP instance"},
+	 "port <portif>", "Create MEP instance"},
 	{"mep-delete", cmd_mep_delete,
 	 "bridge <bridge> instance <instance>", "Delete MEP instance"},
 	{"mep-config", cmd_mep_config,
@@ -600,8 +600,8 @@ static const struct command commands[] =
 	{"mep-config-show", cmd_mep_config_show,
 	 "bridge <bridge>", "Show MEP instances configuration"},
 	{"mip-create", cmd_mip_create,
-	 "bridge <bridge> instance <instance> direction <direction> port <port> "
-	 "vlan <vid>", "Create MIP instance"},
+	 "bridge <bridge> instance <instance> direction <direction> port <portif> "
+	 "vlan <vlanif>", "Create MIP instance"},
 	{"mip-delete", cmd_mip_delete,
 	 "bridge <bridge> instance <instance>", "Delete MIP instance"},
 	{"mip-config", cmd_mip_config,
