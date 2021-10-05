@@ -32,12 +32,21 @@ static enum br_cfm_domain domain_int(char *arg)
 	return -1;
 }
 
-static enum br_cfm_direction direction_int(char *arg)
+static enum br_cfm_mep_direction mep_direction_int(char *arg)
 {
 	if (strcmp(arg, "down") == 0)
-		return BR_CFM_DIRECTION_DOWN;
+		return BR_CFM_MEP_DIRECTION_DOWN;
 	if (strcmp(arg, "up") == 0)
-		return BR_CFM_DIRECTION_UP;
+		return BR_CFM_MEP_DIRECTION_UP;
+	return -1;
+}
+
+static enum br_cfm_mip_direction mip_direction_int(char *arg)
+{
+	if (strcmp(arg, "down") == 0)
+		return BR_CFM_MIP_DIRECTION_DOWN;
+	if (strcmp(arg, "up") == 0)
+		return BR_CFM_MIP_DIRECTION_UP;
 	return -1;
 }
 
@@ -143,7 +152,7 @@ static int cmd_mep_create(int argc, char *const *argv)
 			domain = domain_int(*argv);
 		} else if (strcmp(*argv, "direction") == 0) {
 			NEXT_ARG();
-			direction = direction_int(*argv);
+			direction = mep_direction_int(*argv);
 		} else if (strcmp(*argv, "port") == 0) {
 			NEXT_ARG();
 			port_ifindex = if_nametoindex(*argv);
@@ -457,7 +466,7 @@ static int cmd_mip_create(int argc, char *const *argv)
 			vlan_ifindex = if_nametoindex(*argv);
 		} else if (strcmp(*argv, "direction") == 0) {
 			NEXT_ARG();
-			direction = direction_int(*argv);
+			direction = mip_direction_int(*argv);
 		} else if (strcmp(*argv, "port") == 0) {
 			NEXT_ARG();
 			port_ifindex = if_nametoindex(*argv);

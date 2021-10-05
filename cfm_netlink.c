@@ -124,11 +124,20 @@ static char *int_domain(uint32_t value)
 	return "undef";
 }
 
-static char *int_direction(uint32_t value)
+static char *int_mep_direction(uint32_t value)
 {
 	switch (value) {
-	case BR_CFM_DIRECTION_DOWN: return "down";
-	case BR_CFM_DIRECTION_UP: return "up";
+	case BR_CFM_MEP_DIRECTION_DOWN: return "down";
+	case BR_CFM_MEP_DIRECTION_UP: return "up";
+	}
+	return "undef";
+}
+
+static char *int_mip_direction(uint32_t value)
+{
+	switch (value) {
+	case BR_CFM_MIP_DIRECTION_DOWN: return "down";
+	case BR_CFM_MIP_DIRECTION_UP: return "up";
 	}
 	return "undef";
 }
@@ -330,7 +339,7 @@ static int cfm_mep_config_show(struct nlmsghdr *n, void *arg)
 		if (info_create[IFLA_BRIDGE_CFM_MEP_CREATE_INSTANCE]) {
 			printf("Instance %u\n", rta_getattr_u32(info_create[IFLA_BRIDGE_CFM_MEP_CREATE_INSTANCE]));
 			printf("    Domain %s\n", int_domain(rta_getattr_u32(info_create[IFLA_BRIDGE_CFM_MEP_CREATE_DOMAIN])));
-			printf("    Direction %s\n", int_direction(rta_getattr_u32(info_create[IFLA_BRIDGE_CFM_MEP_CREATE_DIRECTION])));
+			printf("    Direction %s\n", int_mep_direction(rta_getattr_u32(info_create[IFLA_BRIDGE_CFM_MEP_CREATE_DIRECTION])));
 			printf("    Port %s\n", if_indextoname(rta_getattr_u32(info_create[IFLA_BRIDGE_CFM_MEP_CREATE_IFINDEX]), ifname));
 		}
 		printf("\n");
@@ -625,7 +634,7 @@ static int cfm_mip_config_show(struct nlmsghdr *n, void *arg)
 
 		if (info_create[IFLA_BRIDGE_CFM_MIP_CREATE_INSTANCE]) {
 			printf("Instance %u\n", rta_getattr_u32(info_create[IFLA_BRIDGE_CFM_MIP_CREATE_INSTANCE]));
-			printf("    Direction %s\n", int_direction(rta_getattr_u32(info_create[IFLA_BRIDGE_CFM_MIP_CREATE_DIRECTION])));
+			printf("    Direction %s\n", int_mip_direction(rta_getattr_u32(info_create[IFLA_BRIDGE_CFM_MIP_CREATE_DIRECTION])));
 			printf("    Port %s\n", if_indextoname(rta_getattr_u32(info_create[IFLA_BRIDGE_CFM_MIP_CREATE_PORT_IFINDEX]), ifname));
 			printf("    Vlan %s\n", if_indextoname(rta_getattr_u32(info_create[IFLA_BRIDGE_CFM_MIP_CREATE_VLAN_IFINDEX]), ifname));
 		}
@@ -646,7 +655,7 @@ static int cfm_mip_config_show(struct nlmsghdr *n, void *arg)
 			printf("Instance %u\n", rta_getattr_u32(info_config[IFLA_BRIDGE_CFM_MIP_CONFIG_INSTANCE]));
 			printf("    Unicast_mac %s\n", rta_getattr_mac(info_config[IFLA_BRIDGE_CFM_MIP_CONFIG_UNICAST_MAC]));
 			printf("    Mdlevel %u\n", rta_getattr_u32(info_config[IFLA_BRIDGE_CFM_MIP_CONFIG_MDLEVEL]));
-			printf("    Raps %s\n", int_raps(rta_getattr_u32(info_config[IFLA_BRIDGE_CFM_MIP_CONFIG_RAPS_HANDLING])));
+			printf("    Raps %s\n", int_raps(rta_getattr_u8(info_config[IFLA_BRIDGE_CFM_MIP_CONFIG_RAPS_HANDLING])));
 		}
 		printf("\n");
 	}
@@ -922,7 +931,7 @@ int cfm_offload_mip_config(uint32_t br_ifindex, uint32_t instance, struct mac_ad
 		   mac);
 	addattr32(&req.n, sizeof(req), IFLA_BRIDGE_CFM_MIP_CONFIG_MDLEVEL,
 		  level);
-	addattr32(&req.n, sizeof(req), IFLA_BRIDGE_CFM_MIP_CONFIG_RAPS_HANDLING,
+	addattr8(&req.n, sizeof(req), IFLA_BRIDGE_CFM_MIP_CONFIG_RAPS_HANDLING,
 		  raps);
 
 	return cfm_nl_terminate(&req, afspec, af, af_sub);

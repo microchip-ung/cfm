@@ -50,10 +50,16 @@ enum br_cfm_domain {
 	BR_CFM_VLAN,
 };
 
-/* MEP/MIP direction */
-enum br_cfm_direction {
-	BR_CFM_DIRECTION_DOWN,
-	BR_CFM_DIRECTION_UP,
+/* MEP direction */
+enum br_cfm_mep_direction {
+	BR_CFM_MEP_DIRECTION_DOWN,
+	BR_CFM_MEP_DIRECTION_UP,
+};
+
+/* MIP direction */
+enum br_cfm_mip_direction {
+	BR_CFM_MIP_DIRECTION_DOWN,
+	BR_CFM_MIP_DIRECTION_UP,
 };
 
 /* CCM interval supported. */
