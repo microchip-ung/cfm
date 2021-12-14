@@ -593,16 +593,18 @@ static const struct command commands[] =
 	 "Configure MEP instance"},
 	{"cc-config", cmd_cc_config,
 	 "bridge <bridge> instance <instance> enable <enable> interval <interval> "
-	 "domain-name <name> short-name <name>", "Configure CC function"},
+	 "domain-name <name> short-name <name>\n"
+	 "                    Parameter 'interval' is 3ms3 - 10ms - 100ms - 1s - 10s - 1m - 10m",
+	 "Configure CC function"},
 	{"cc-peer", cmd_cc_peer,
 	 "bridge <bridge> instance <instance> remove <remove> mepid <mepid> ",
 	 "Configure CC Peer-MEP ID function"},
 	{"cc-rdi", cmd_cc_rdi,
 	 "bridge <bridge> instance <instance> rdi <rdi>", "Configure CC RDI insertion"},
 	{"cc-ccm-tx", cmd_cc_ccm_tx,
-	 "bridge <bridge> instance <instance> dmac <dmac> "
-	 "sequence <sequence> period <period> iftlv <iftlv> iftlv-value "
-	 "<iftlv-value> porttlv <porttlv> porttlv-value <porttlv-value>",
+	 "bridge <bridge> instance <instance> dmac <dmac> sequence <sequence> period <period>\n"
+	 "                    iftlv <iftlv> iftlv-value <iftlv-value> porttlv <porttlv> porttlv-value <porttlv-value>\n"
+	 "                    Parameter 'period' is the transmission period in seconds.",
 	 "Configure CC CCM TX"},
 	{"mep-status-show", cmd_mep_status_show,
 	 "bridge <bridge>", "Show MEP instances status"},
